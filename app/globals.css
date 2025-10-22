@@ -1,0 +1,47 @@
+/* Tailwind v4 */
+@import "tailwindcss";
+
+/* seus tokens (antes ficavam no tailwind.config) */
+@theme {
+  /* cores surface */
+  --color-surface-50: #0f141b;
+  --color-surface-100: #111827;
+
+  /* brand scale */
+  --color-brand-50: #eef8ff;
+  --color-brand-100: #d9ecff;
+  --color-brand-200: #b7dbff;
+  --color-brand-300: #8cc5ff;
+  --color-brand-400: #5aa8ff;
+  --color-brand-500: #2f87ff;
+  --color-brand-600: #1569f0;
+  --color-brand-700: #0f53c4;
+  --color-brand-800: #0f469c;
+  --color-brand-900: #0f3c81;
+
+  /* semantic */
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-warning: #f59e0b;
+
+  /* radius custom */
+  --radius-xl2: 1rem;
+}
+
+/* estilos base que você já tinha */
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-surface-50 text-white;
+}
+
+.container {
+  @apply max-w-5xl mx-auto px-4;
+}
