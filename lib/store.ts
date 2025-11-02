@@ -1,33 +1,39 @@
 "use client";
-
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { Transaction, TransactionType } from "./types";
-import seed from "@/data/transactions.json";
+import type { AnyTransaction } from "./types";
+import { listTransactions, createTransaction, updateTransaction, deleteTransaction } from "./api";
 
 type State = {
-  transactions: Transaction[];
-  add: (t: Omit<Transaction, "id">) => void;
-  update: (id: string, patch: Partial<Omit<Transaction, "id">>) => void;
-  remove: (id: string) => void;
-  get: (id: string) => Transaction | undefined;
+  transactions: AnyTransaction[];
+  loading: boolean;
+  fetchAll: (q?: string) => Promise<void>;
+  add: (t: Omit<AnyTransaction, "id">) => Promise<void>;
+  patch: (id: string, p: Partial<Omit<AnyTransaction, "id">>) => Promise<void>;
+  remove: (id: string) => Promise<void>;
 };
 
-function uid() {
-  return Math.random().toString(36).slice(2, 9);
-}
+export const useTxStore = create<State>((set, get) => ({
+  transactions: [],
+  loading: false,
 
-export const useTxStore = create<State>()(
-  persist(
-    (set, get) => ({
-      transactions: seed,
-      add: (t) => set((s) => ({ transactions: [{ id: `t-${uid()}`, ...t }, ...s.transactions] })),
-      update: (id, patch) => set((s) => ({
-        transactions: s.transactions.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-      })),
-      remove: (id) => set((s) => ({ transactions: s.transactions.filter((x) => x.id !== id) })),
-      get: (id) => get().transactions.find((x) => x.id === id),
-    }),
-    { name: "postech-tx" }
-  )
-);
+  fetchAll: async (q) => {
+    set({ loading: true });
+    const data = await listTransactions({ q, _sort: "date", _order: "desc" });
+    set({ transactions: data, loading: false });
+  },
+
+  add: async (t) => {
+    const created = await createTransaction(t);
+    set({ transactions: [created, ...get().transactions] });
+  },
+
+  patch: async (id, p) => {
+    const updated = await updateTransaction(id, p);
+    set({ transactions: get().transactions.map(x => (x.id === id ? updated : x)) });
+  },
+
+  remove: async (id) => {
+    await deleteTransaction(id);
+    set({ transactions: get().transactions.filter(x => x.id !== id) });
+  },
+}));

@@ -1,0 +1,45 @@
+{
+  "transactions": [
+    {
+      "id": "t-001",
+      "type": "deposit",
+      "description": "Depósito inicial",
+      "amount": 2500,
+      "date": "2025-09-20T10:00:00.000Z",
+      "status": "processed"
+    },
+    {
+      "id": "t-004",
+      "type": "withdraw",
+      "description": "Saque 24h",
+      "amount": 100,
+      "date": "2025-10-01T09:05:00.000Z",
+      "status": "processed"
+    },
+    {
+      "id": "t-005",
+      "type": "deposit",
+      "description": "Salário",
+      "amount": 8200,
+      "date": "2025-10-05T08:00:00.000Z",
+      "status": "processed"
+    },
+    {
+      "id": "t-006",
+      "type": "transfer",
+      "description": "PIX agendado — condomínio",
+      "amount": 9500,
+      "date": "2025-11-07T00:00:00.000Z",
+      "status": "scheduled"
+    },
+    {
+      "type": "pix",
+      "description": "eai",
+      "amount": 10,
+      "date": "2025-11-01T00:00:00.000Z",
+      "pixType": "normal",
+      "status": "processed",
+      "id": "IF6dtYg"
+    }
+  ]
+}

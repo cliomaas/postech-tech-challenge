@@ -2,10 +2,10 @@
 import Card from "@/components/ds/Card";
 import Badge from "@/components/ds/Badge";
 import { useTxStore } from "@/lib/store";
-import { calcBalance, currencyBRL } from "@/lib/utils";
+import { calcBalance, currencyBRL } from "@/lib/utils/currency";
 
-export default function BalanceCard(){
-  const txs = useTxStore(s=>s.transactions);
+export default function BalanceCard() {
+  const txs = useTxStore(s => s.transactions);
   const balance = calcBalance(txs);
   return (
     <Card className="p-6">

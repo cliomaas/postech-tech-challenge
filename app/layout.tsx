@@ -3,7 +3,7 @@ import type { Metadata } from "next/types";
 import { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Finance App — Tech Challenge",
+  title: "ByteBank — Tech Challenge",
   description: "Gerenciador financeiro (mock) — Next.js + Tailwind",
 };
 
@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <header className="border-b border-white/10">
           <div className="container flex items-center justify-between h-14">
-            <a href="/" className="font-semibold">💸 Finance</a>
+            <a href="/" className="font-semibold">💸 ByteBank</a>
             <nav className="flex items-center gap-4 text-sm">
               <a className="hover:underline" href="/">Home</a>
               <a className="hover:underline" href="/transactions">Transações</a>

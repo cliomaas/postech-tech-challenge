@@ -8,10 +8,10 @@ import TxForm from "@/components/forms/TxForm";
 import { useState } from "react";
 import { useTxStore } from "@/lib/store";
 
-export default function HomePage(){
+export default function HomePage() {
   const [open, setOpen] = useState(false);
-  const add = useTxStore(s=>s.add);
-  const txs = useTxStore(s=>s.transactions).slice(0,5);
+  const add = useTxStore(s => s.add);
+  const txs = useTxStore(s => s.transactions).slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -20,7 +20,7 @@ export default function HomePage(){
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">Nova transação</h3>
-            <Button onClick={()=>setOpen(true)}>Adicionar</Button>
+            <Button onClick={() => setOpen(true)}>Adicionar</Button>
           </div>
           <p className="mt-2 text-sm text-white/60">Crie uma transação rapidamente.</p>
         </Card>
@@ -36,9 +36,9 @@ export default function HomePage(){
         </div>
       </Card>
 
-      <Modal open={open} onClose={()=>setOpen(false)}>
+      <Modal open={open} onClose={() => setOpen(false)}>
         <h3 className="text-lg font-medium mb-3">Adicionar transação</h3>
-        <TxForm onSubmit={(data)=>{ add(data); setOpen(false); }} />
+        <TxForm onSubmit={(data) => { add({ ...data, status: "processed" }); setOpen(false); }} />
       </Modal>
     </div>
   );
