@@ -54,7 +54,7 @@ storybook/
 ```
 
 ## 🧪 Vídeo
-Grave um vídeo curto (≤ 5min) navegando: Home → Transações → Adicionar → Editar → Excluir.
+Grave um vídeo curto (≤ 5min) navegando: Home → Transações → Adicionar → Editar → Excluir. (TODO)
 
 ## 📝 Acessibilidade
 - Foco visível, semântica em tabelas, rótulos conectados a inputs, nomes acessíveis em botões.

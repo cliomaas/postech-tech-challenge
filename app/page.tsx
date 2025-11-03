@@ -7,6 +7,7 @@ import Modal from "@/components/ds/Modal";
 import TxForm from "@/components/forms/TxForm";
 import { useState } from "react";
 import { useTxStore } from "@/lib/store";
+import { finalizeFromForm } from "@/lib/utils/tx";
 
 export default function HomePage() {
   const [open, setOpen] = useState(false);
@@ -38,7 +39,13 @@ export default function HomePage() {
 
       <Modal open={open} onClose={() => setOpen(false)}>
         <h3 className="text-lg font-medium mb-3">Adicionar transação</h3>
-        <TxForm onSubmit={(data) => { add({ ...data, status: "processed" }); setOpen(false); }} />
+        <TxForm
+          onSubmit={(form) => {
+            const txWithoutId = finalizeFromForm(form);
+            add(txWithoutId);
+            setOpen(false);
+          }}
+        />
       </Modal>
     </div>
   );

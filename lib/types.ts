@@ -1,22 +1,20 @@
 export type TransactionType = "deposit" | "transfer" | "payment" | "withdraw" | "pix";
-export type TransactionStatus = "processed" | "scheduled" | "manual";
+export type TransactionStatus = "scheduled" | "processing" | "processed" | "cancelled" | "failed";
 export type PixType = "normal" | "scheduled";
-export type PixStatus = "pending" | "sent" | "cancelled" | "failed";
 
 export interface Transaction {
   id: string;
   type: Exclude<TransactionType, "pix">;
   description: string;
-  amount: number; // positive numbers; sign decided by type
-  date: string; // ISO
+  amount: number;
+  date: string; // ISO YYYY-MM-DD
   status: TransactionStatus;
 }
 
-export interface PixTransaction extends Omit<Transaction, "type" | "status"> {
+export interface PixTransaction extends Omit<Transaction, "type"> {
   type: "pix";
   pixType: PixType;
-  scheduledFor?: string; // ISO; only if scheduled
-  status: PixStatus;  // lifecycle of PIX
+  scheduledFor?: string; // ISO quando agendado
 }
 
 export type AnyTransaction = Transaction | PixTransaction;
