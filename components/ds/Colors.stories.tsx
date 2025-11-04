@@ -9,7 +9,6 @@ const colors = [
     { name: "warning", var: "--color-warning" },
 ];
 
-// 👇 helper: renderiza o quadradinho + nome + hex
 function Swatch({ name, cssVar }: { name: string; cssVar: string }) {
     const color = getComputedStyle(document.documentElement)
         .getPropertyValue(cssVar)
@@ -27,7 +26,6 @@ function Swatch({ name, cssVar }: { name: string; cssVar: string }) {
     );
 }
 
-// story principal
 export const Palette = () => (
     <div className="grid grid-cols-5 gap-6 text-center">
         {colors.map((c) => (

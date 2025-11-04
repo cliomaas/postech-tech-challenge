@@ -20,7 +20,6 @@ export function toISOFromDatetimeLocal(datetime: string): string {
  */
 export function getTodayISO(): string {
     const now = new Date();
-    // normaliza para “meia-noite” local, evitando bugs de timezone
     const local = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yyyy = local.getFullYear();
     const mm = String(local.getMonth() + 1).padStart(2, "0");

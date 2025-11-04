@@ -40,7 +40,7 @@ export default function TxForm({ initial, onSubmit }: Props) {
     setLoading(true);
 
     try {
-      // ✅ bloqueios de data anterior a hoje
+
       if (type !== "pix") {
         if (toISODateOnly(date) < minDate) {
           alert("A data não pode ser anterior a hoje.");

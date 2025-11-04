@@ -14,7 +14,7 @@ export interface Transaction {
 export interface PixTransaction extends Omit<Transaction, "type"> {
   type: "pix";
   pixType: PixType;
-  scheduledFor?: string; // ISO quando agendado
+  scheduledFor?: string; // ISO when scheduled
 }
 
 export type AnyTransaction = Transaction | PixTransaction;

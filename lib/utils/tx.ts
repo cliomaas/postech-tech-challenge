@@ -23,7 +23,7 @@ type PixCreatePayload = {
 const PROCESSING_MS = 2 * 60 * 1000;
 
 export type RuntimeFlags = {
-    processingUntil?: string; // ISO quando deve virar processed
+    processingUntil?: string; // ISO when processed
 };
 
 export type FormPayload = NonPixPayload | PixCreatePayload;
