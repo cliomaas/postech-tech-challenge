@@ -25,21 +25,23 @@
       "status": "processed"
     },
     {
-      "id": "t-006",
-      "type": "transfer",
-      "description": "PIX agendado — condomínio",
-      "amount": 9500,
-      "date": "2025-11-07T00:00:00.000Z",
-      "status": "scheduled"
-    },
-    {
       "type": "pix",
-      "description": "eai",
-      "amount": 10,
-      "date": "2025-11-01T00:00:00.000Z",
+      "description": "Pix pro jean",
+      "amount": 10000000,
+      "date": "2025-11-03T00:00:00.000Z",
       "pixType": "normal",
       "status": "processed",
-      "id": "IF6dtYg"
+      "processingUntil": "2025-11-03T01:35:29.943Z",
+      "id": "8KIrhv2"
+    },
+    {
+      "type": "deposit",
+      "description": "pra coisar",
+      "amount": 200,
+      "date": "2025-11-02T00:00:00.000Z",
+      "status": "processed",
+      "processingUntil": "2025-11-03T01:36:02.861Z",
+      "id": "u2UbP2d"
     }
   ]
 }

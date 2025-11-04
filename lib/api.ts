@@ -55,3 +55,23 @@ export async function deleteTransaction(id: string) {
     const res = await fetch(`${BASE}/transactions/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 }
+
+export async function cancelTransaction(id: string) {
+    const res = await fetch(`${BASE}/transactions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled" }),
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.json();
+}
+
+export async function restoreTransaction(id: string) {
+    const res = await fetch(`${BASE}/transactions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "confirmed" }), // ou o status anterior que você usar
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.json();
+}

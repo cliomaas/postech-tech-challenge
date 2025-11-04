@@ -12,3 +12,4 @@ type Story = StoryObj<typeof Button>;
 export const Primary: Story = { args: { variant: "primary" } };
 export const Ghost: Story = { args: { variant: "ghost" } };
 export const Danger: Story = { args: { variant: "danger" } };
+export const Disabled: Story = { args: { variant: "disabled" } }

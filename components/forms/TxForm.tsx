@@ -49,7 +49,7 @@ export default function TxForm({ initial, onSubmit }: Props) {
       await onSubmit(payload);
     } catch (err) {
       console.error("Erro ao salvar transação:", err);
-      // opcional: exibir mensagem pro usuário
+      // TODO: snackbar para user
       alert("Não foi possível salvar a transação. Tente novamente.");
     } finally {
       setLoading(false);
