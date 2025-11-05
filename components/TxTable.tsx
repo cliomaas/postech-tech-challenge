@@ -12,6 +12,7 @@ import { finalizeFromForm } from "@/lib/utils/tx";
 import Badge from "./ds/Badge";
 import Input from "./ds/Input";
 import { useSnackbar } from "@/components/ds/SnackbarProvider";
+import { brDateFromAny, txRawDate } from "@/lib/utils/date";
 
 export default function TxTable() {
   const { transactions, fetchAll, cancel, restore, patch, add, loading, setNotifier } = useTxStore();
@@ -75,7 +76,8 @@ export default function TxTable() {
 
           <tbody className="text-fg">
             {filtered.map((t, idx) => {
-              const date = new Date(t.date).toLocaleDateString("pt-BR");
+              const raw = txRawDate(t)
+              const date = brDateFromAny(raw);
               const negative = negativeTypes.has(t.type);
 
               const row = clsx(

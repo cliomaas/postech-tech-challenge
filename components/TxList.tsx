@@ -1,3 +1,4 @@
+// components/TxList.tsx
 "use client";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { clsx } from "clsx";
@@ -20,6 +21,31 @@ const tLabel = {
 
 const negativeTypes = new Set<AnyTransaction["type"]>(["withdraw", "payment", "pix"]);
 type TxGroup = { dateKey: string; time: number; items: AnyTransaction[]; total: number };
+
+function txRawDate(t: { date: string; status: string; scheduledFor?: string | null }) {
+    return t.status === "scheduled" && t.scheduledFor ? t.scheduledFor : t.date;
+}
+
+function brDateFromAny(input: string): string {
+    const s = String(input);
+    const ymd = s.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+        const [y, m, d] = ymd.split("-");
+        return `${d}/${m}/${y}`;
+    }
+    return new Date(s).toLocaleDateString("pt-BR", { timeZone: "UTC" });
+}
+
+function dayStartTsFromAny(input: string): number {
+    const s = String(input);
+    const ymd = s.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+        const [y, m, d] = ymd.split("-").map(Number);
+        return new Date(y, m - 1, d).getTime();
+    }
+    const d = new Date(new Date(s).toLocaleString("en-US", { timeZone: "UTC" }));
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
 
 export default function TxList() {
     const { transactions, fetchAll, cancel, restore, patch, add, loading, setNotifier } = useTxStore();
@@ -47,9 +73,11 @@ export default function TxList() {
     const grouped = useMemo<TxGroup[]>(() => {
         const map = new Map<string, TxGroup>();
         for (const t of filtered) {
-            const d = new Date(t.date);
-            const dateKey = d.toLocaleDateString("pt-BR");
-            const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+            if (hiddenCancelled.has(t.id)) continue;
+
+            const raw = txRawDate(t as any);
+            const dateKey = brDateFromAny(raw);
+            const time = dayStartTsFromAny(raw);
             const signed = negativeTypes.has(t.type) ? -t.amount : t.amount;
 
             const g = map.get(dateKey);
@@ -57,11 +85,11 @@ export default function TxList() {
                 g.items.push(t);
                 g.total += signed;
             } else {
-                map.set(dateKey, { dateKey, time: dayStart, items: [t], total: signed });
+                map.set(dateKey, { dateKey, time, items: [t], total: signed });
             }
         }
         return Array.from(map.values()).sort((a, b) => b.time - a.time);
-    }, [filtered]);
+    }, [filtered, hiddenCancelled]);
 
     return (
         <div className="space-y-3">
@@ -100,6 +128,7 @@ export default function TxList() {
                         <ul className="divide-y divide-[color:var(--color-border)]/60">
                             {g.items.map((t) => {
                                 if (hiddenCancelled.has(t.id)) return null;
+
                                 const negative = negativeTypes.has(t.type);
                                 const { editDisabled, deleteDisabled } = getTxActionState(t);
 
@@ -107,7 +136,7 @@ export default function TxList() {
                                     <li key={t.id}>
                                         <div
                                             className={clsx(
-                                                "group px-4 py-3 flex items-center gap-3",
+                                                "group flex flex-wrap sm:flex-nowrap items-center gap-3 px-4 py-3",
                                                 "hover:bg-[color:var(--color-surface-50)]/80 transition-colors",
                                                 t.status === "cancelled" && "opacity-60"
                                             )}
@@ -126,18 +155,16 @@ export default function TxList() {
                                                 </div>
                                             )}
 
-                                            <div className={clsx("flex-1 min-w-0", t.status === "cancelled" && "line-through")}>
+                                            <div className={clsx("grow sm:grow-0 min-w-0", t.status === "cancelled" && "line-through")}>
                                                 <div className="text-base font-medium truncate">{t.description}</div>
-                                                <div className="text-xs text-fg/70">
-                                                    {tLabel.type[t.type]} · {<Badge
+                                                <div className="text-xs">
+                                                    <span className="font-medium text-fg">{tLabel.type[t.type]}</span>
+                                                    <span className="mx-1 opacity-50">·</span>
+                                                    <Badge
                                                         color={
-                                                            t.status === "processed"
-                                                                ? "green"
-                                                                : t.status === "processing"
-                                                                    ? "yellow"
-                                                                    : t.status === "cancelled"
-                                                                        ? "red"
-                                                                        : "slate"
+                                                            t.status === "processed" ? "green" :
+                                                                t.status === "processing" ? "yellow" :
+                                                                    t.status === "cancelled" ? "red" : "slate"
                                                         }
                                                         title={
                                                             t.status === "processing" && (t as any).processingUntil
@@ -146,9 +173,10 @@ export default function TxList() {
                                                         }
                                                     >
                                                         {tLabel.status[t.status]}
-                                                    </Badge>}
+                                                    </Badge>
                                                 </div>
                                             </div>
+
                                             <div className="ml-auto flex items-center gap-2 sm:gap-3">
                                                 <div
                                                     className={clsx(
@@ -188,15 +216,12 @@ export default function TxList() {
                             })}
                         </ul>
                     </Fragment>
-                ))
-                }
+                ))}
 
-                {
-                    !loading && grouped.length === 0 && (
-                        <div className="p-8 text-center text-fg/70">Nenhuma transação encontrada.</div>
-                    )
-                }
-            </div >
+                {!loading && grouped.length === 0 && (
+                    <div className="p-8 text-center text-fg/70">Nenhuma transação encontrada.</div>
+                )}
+            </div>
 
             <Modal open={!!edit} onClose={() => setEdit(null)}>
                 <h3 className="text-lg font-medium mb-3">Editar transação</h3>
@@ -222,6 +247,6 @@ export default function TxList() {
                     }}
                 />
             </Modal>
-        </div >
+        </div>
     );
 }

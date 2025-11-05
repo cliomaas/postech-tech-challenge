@@ -26,3 +26,29 @@ export function getTodayISO(): string {
     const dd = String(local.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
 }
+
+
+export function txRawDate(t: { date: string; status: string; scheduledFor?: string | null }) {
+    return t.status === "scheduled" && t.scheduledFor ? t.scheduledFor : t.date;
+}
+
+export function brDateFromAny(input: string): string {
+    const s = String(input);
+    const ymd = s.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+        const [y, m, d] = ymd.split("-");
+        return `${d}/${m}/${y}`;
+    }
+    return new Date(s).toLocaleDateString("pt-BR", { timeZone: "UTC" });
+}
+
+export function dayStartTsFromAny(input: string): number {
+    const s = String(input);
+    const ymd = s.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+        const [y, m, d] = ymd.split("-").map(Number);
+        return new Date(y, m - 1, d).getTime();
+    }
+    const d = new Date(new Date(s).toLocaleString("en-US", { timeZone: "UTC" }));
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}

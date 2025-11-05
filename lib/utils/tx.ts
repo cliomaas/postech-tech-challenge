@@ -49,7 +49,8 @@ export function finalizeFromForm(
     p: FormPayload,
     now: Date = new Date()
 ): (Omit<AnyTransaction, "id"> & RuntimeFlags) {
-    const nowISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
+    const nowISO = now.toISOString();
+    console.log('datas', 'now', now, 'nowISO', nowISO, 'p', p)
     const isFuture = new Date(p.date) > now;
 
     if (p.type === "pix") {
