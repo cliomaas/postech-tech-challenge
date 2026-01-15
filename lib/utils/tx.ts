@@ -6,6 +6,8 @@ import {
     PixType,
 } from "../types";
 import { toISOFromDatetimeLocal } from "./date";
+import { transactionCategorySchema } from "@/src/core/transaction";
+import { z } from "zod";
 
 type NonPixPayload = Omit<Transaction, "id" | "status"> & {
     type: Exclude<TransactionType, "pix">;
@@ -16,6 +18,7 @@ type PixCreatePayload = {
     description: string;
     amount: number;
     date: string;
+    category: z.infer<typeof transactionCategorySchema>;
     pixType: PixType;      // "normal" | "scheduled"
     scheduledFor?: string; // ISO
 };
@@ -29,20 +32,22 @@ export type RuntimeFlags = {
 export type FormPayload = NonPixPayload | PixCreatePayload;
 
 export function buildFormPayload(
-    base: { description: string; amount: number; date: string },
+    base: { description: string; amount: number; date: string; category?: z.infer<typeof transactionCategorySchema> },
     type: TransactionType,
     pix: { pixType: "normal" | "scheduled"; scheduledFor?: string }
 ): FormPayload {
-    if (type !== "pix") return { type, ...base } as NonPixPayload;
+    const category = base.category ?? "OUTROS";
+    if (type !== "pix") return { type, ...base, category } as NonPixPayload;
 
     return pix.pixType === "scheduled"
         ? {
             type: "pix",
             ...base,
+            category,
             pixType: "scheduled",
             scheduledFor: toISOFromDatetimeLocal(pix.scheduledFor || ""),
         }
-        : { type: "pix", ...base, pixType: "normal" };
+        : { type: "pix", ...base, category, pixType: "normal" };
 }
 
 export function finalizeFromForm(
@@ -61,8 +66,9 @@ export function finalizeFromForm(
                 amount: p.amount,
                 date: p.date,
                 pixType: "scheduled",
-                status: "scheduled",
+                status: "SCHEDULED",
                 ...(p.scheduledFor ? { scheduledFor: p.scheduledFor } : {}),
+                category: p.category,
             };
             return tx;
         }
@@ -74,8 +80,9 @@ export function finalizeFromForm(
             amount: p.amount,
             date: p.date || nowISO,
             pixType: "normal",
-            status: "processing",
+            status: "PROCESSING",
             processingUntil: until,
+            category: p.category,
         };
         return tx;
     }
@@ -86,7 +93,8 @@ export function finalizeFromForm(
             description: p.description,
             amount: p.amount,
             date: p.date,
-            status: "scheduled",
+            status: "SCHEDULED",
+            category: p.category,
         };
         return tx;
     }
@@ -97,8 +105,9 @@ export function finalizeFromForm(
         description: p.description,
         amount: p.amount,
         date: p.date,
-        status: "processing",
+        status: "PROCESSING",
         processingUntil: until,
+        category: p.category,
     };
     return tx;
 }

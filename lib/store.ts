@@ -29,7 +29,7 @@ function parseISO(s?: string) {
 function scheduleNextSweep(get: () => State, set: (partial: Partial<State>) => void) {
   if (timerId) clearTimeout(timerId);
   const pending = get().transactions
-    .filter(t => t.status === "processing" && t.processingUntil)
+    .filter(t => t.status === "PROCESSING" && t.processingUntil)
     .map(t => ({ t, until: parseISO(t.processingUntil!)! }))
     .filter(x => !Number.isNaN(+x.until));
   if (pending.length === 0) return;
@@ -45,16 +45,16 @@ function scheduleNextSweep(get: () => State, set: (partial: Partial<State>) => v
 async function sweepProcessing(get: () => State, set: (partial: Partial<State>) => void) {
   const now = Date.now();
   const due = get().transactions.filter(
-    t => t.status === "processing" && t.processingUntil && +new Date(t.processingUntil) <= now
+    t => t.status === "PROCESSING" && t.processingUntil && +new Date(t.processingUntil) <= now
   );
   if (due.length === 0) return;
   const updatedLocal = get().transactions.map(t =>
     due.find(d => d.id === t.id)
-      ? { ...t, status: "processed" as TransactionStatus, processingUntil: undefined }
+      ? { ...t, status: "PROCESSED" as TransactionStatus, processingUntil: undefined }
       : t
   );
   set({ transactions: updatedLocal });
-  await Promise.all(due.map(d => updateTransaction(d.id, { status: "processed" })));
+  await Promise.all(due.map(d => updateTransaction(d.id, { status: "PROCESSED" })));
 }
 
 const creator: StateCreator<State> = (set, get) => ({
@@ -74,7 +74,7 @@ const creator: StateCreator<State> = (set, get) => ({
   add: async t => {
     const created = (await createTransaction(t)) as TxWithRuntime;
     set({ transactions: [created, ...get().transactions] });
-    if (created.status === "processing" && created.processingUntil) {
+    if (created.status === "PROCESSING" && created.processingUntil) {
       scheduleNextSweep(get, set);
     }
   },
@@ -97,7 +97,7 @@ const creator: StateCreator<State> = (set, get) => ({
     if (!t) return;
     set({
       transactions: prev.map(x =>
-        x.id === id ? { ...x, previousStatus: x.status as TransactionStatus, status: "cancelled" as TransactionStatus, locked: true } : x
+        x.id === id ? { ...x, previousStatus: x.status as TransactionStatus, status: "CANCELLED" as TransactionStatus } : x
       ),
     });
     try {

@@ -16,7 +16,8 @@ import { formatBRL } from "@/src/core/money";
 
 const tLabel = {
     type: { deposit: "Depósito", transfer: "Transferência", payment: "Pagamento", withdraw: "Saque", pix: "Pix" },
-    status: { scheduled: "Agendado", processing: "Em processamento", processed: "Finalizado", cancelled: "Cancelado", failed: "Falha" }
+    status: { scheduled: "Agendado", processing: "Em processamento", processed: "Finalizado", cancelled: "Cancelado", failed: "Falha" },
+    category: { OUTROS: "Outros", ALIMENTACAO: "Alimentação", SAUDE: "Saúde", TRANSPORTE: "Transporte", MORADIA: "Moradia", LAZER: "Lazer", EDUCACAO: "Educação" }
 } as const;
 
 const negativeTypes = new Set<AnyTransaction["type"]>(["withdraw", "payment", "pix"]);
@@ -138,10 +139,10 @@ export default function TxList() {
                                             className={clsx(
                                                 "group flex flex-wrap sm:flex-nowrap items-center gap-3 px-4 py-3",
                                                 "hover:bg-[color:var(--color-surface-50)]/80 transition-colors",
-                                                t.status === "cancelled" && "opacity-60"
+                                                t.status === "CANCELLED" && "opacity-60"
                                             )}
                                         >
-                                            {t.status === "cancelled" && (
+                                            {t.status === "CANCELLED" && (
                                                 <div className="flex items-center">
                                                     <button
                                                         onClick={() => {
@@ -155,20 +156,26 @@ export default function TxList() {
                                                 </div>
                                             )}
 
-                                            <div className={clsx("grow sm:grow-0 min-w-0", t.status === "cancelled" && "line-through")}>
+                                            <div className={clsx("grow sm:grow-0 min-w-0", t.status === "CANCELLED" && "line-through")}>
                                                 <div className="text-base font-medium truncate">{t.description}</div>
                                                 <div className="text-xs">
                                                     <span className="font-medium text-fg">{tLabel.type[t.type as keyof typeof tLabel.type] ?? t.type}</span>
+                                                    {t.category !== "INCOME" && (
+                                                        <>
+                                                            <span className="mx-1 opacity-50">·</span>
+                                                            <span className="font-medium text-fg">{tLabel.category[t.category as keyof typeof tLabel.category] ?? t.category}</span>
+                                                        </>
+                                                    )}
                                                     <span className="mx-1 opacity-50">·</span>
                                                     {t.status && (
                                                         <Badge
                                                             color={
-                                                                t.status === "processed" ? "green" :
-                                                                    t.status === "processing" ? "yellow" :
-                                                                        t.status === "cancelled" ? "red" : "slate"
+                                                                t.status === "PROCESSED" ? "green" :
+                                                                    t.status === "PROCESSING" ? "yellow" :
+                                                                        t.status === "CANCELLED" ? "red" : "slate"
                                                             }
                                                             title={
-                                                                t.status === "processing" && (t as any).processingUntil
+                                                                t.status === "PROCESSING" && (t as any).processingUntil
                                                                     ? `Processando até ${new Date((t as any).processingUntil).toLocaleTimeString("pt-BR")}`
                                                                     : undefined
                                                             }
@@ -184,7 +191,7 @@ export default function TxList() {
                                                     className={clsx(
                                                         "tabular-nums font-semibold",
                                                         negative ? "text-[var(--color-danger)]" : "text-[var(--color-success)]",
-                                                        t.status === "cancelled" && "line-through"
+                                                        t.status === "CANCELLED" && "line-through"
                                                     )}
                                                 >
                                                     {negative ? "-" : ""}{formatBRL(t.amount)}
@@ -199,7 +206,7 @@ export default function TxList() {
                                                     Editar
                                                 </Button>
 
-                                                {t.status === "cancelled" ? (
+                                                {t.status === "CANCELLED" ? (
                                                     (t as any).locked ? null : (
                                                         <Button variant="ghost" onClick={() => restore(t.id)}>Restaurar</Button>
                                                     )

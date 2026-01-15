@@ -9,9 +9,9 @@ export function currencyBRL(value: number) {
 
 export function calcBalance(list: AnyTransaction[]): number {
     return list
-        .filter(l => l.status !== "cancelled")
+        .filter(l => l.status !== "CANCELLED")
         .reduce((acc, t) => {
-            if (t.status !== "processed") return acc;
+            if (t.status !== "PROCESSED") return acc;
             const sign = ["withdraw", "payment", "pix"].includes(t.type) ? -1 : 1;
             return acc + sign * t.amount;
         }, 0);

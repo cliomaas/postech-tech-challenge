@@ -89,11 +89,11 @@ export default function TxTable() {
                 "border-b border-[var(--color-border)]/60",
                 idx % 2 === 0 ? "bg-[color:var(--color-surface-50)]/40" : "bg-transparent",
                 "hover:bg-[color:var(--color-surface-50)]/80",
-                t.status === "cancelled" && "opacity-60 line-through"
+                t.status === "CANCELLED" && "opacity-60 line-through"
               );
 
               return (
-                <tr key={t.id} className={row} aria-disabled={t.status === "cancelled"}>
+                <tr key={t.id} className={row} aria-disabled={t.status === "CANCELLED"}>
                   <Td>{date}</Td>
                   <Td className="max-w-[28ch] truncate">
                     <span title={t.description}>{t.description}</span>
@@ -109,16 +109,16 @@ export default function TxTable() {
                   <Td>
                     <Badge
                       color={
-                        t.status === "processed"
+                        t.status === "PROCESSED"
                           ? "green"
-                          : t.status === "processing"
+                          : t.status === "PROCESSING"
                             ? "yellow"
-                            : t.status === "cancelled"
+                            : t.status === "CANCELLED"
                               ? "red"
                               : "slate"
                       }
                       title={
-                        t.status === "processing" && (t as any).processingUntil
+                        t.status === "PROCESSING" && (t as any).processingUntil
                           ? `Processando até ${new Date((t as any).processingUntil).toLocaleTimeString("pt-BR")}`
                           : undefined
                       }
@@ -141,7 +141,7 @@ export default function TxTable() {
                             >
                               Editar
                             </Button>
-                            {t.status === "cancelled" ?
+                            {t.status === "CANCELLED" ?
                               t.locked ? null : (
                                 <Button variant="ghost" onClick={() => restore(t.id)}>Batata</Button>
                               ) : (
