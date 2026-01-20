@@ -2,20 +2,20 @@ import { AnyTransaction } from "../types";
 import { dayStartTsFromAny, getTodayISO } from "./date";
 
 export function canEditTransaction(t: AnyTransaction, now = new Date()) {
-    if (t.status === "scheduled") return true;
-    if (t.status === "processing") return true;
+    if (t.status === "SCHEDULED") return true;
+    if (t.status === "PROCESSING") return true;
     return false
 }
 
 export function canDeleteTransaction(t: AnyTransaction) {
-    if (t.status === "scheduled") return true;
-    if (t.status === "processing") return true;
-    return t.status === "cancelled" || t.status === "failed";
+    if (t.status === "SCHEDULED") return true;
+    if (t.status === "PROCESSING") return true;
+    return t.status === "CANCELLED" || t.status === "FAILED";
 }
 
 
 export function isExpiredScheduled(tx: any) {
-    if (tx.status !== "scheduled") return false;
+    if (tx.status !== "SCHEDULED") return false;
     if (!tx.scheduledFor) return false;
 
     const todayStart = dayStartTsFromAny(getTodayISO());

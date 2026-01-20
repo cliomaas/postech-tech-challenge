@@ -59,6 +59,7 @@ export default function TxForm({ initial, onSubmit }: Props) {
         description,
         amount: Number(amount),
         date: toISODateOnly(date),
+        category: initial?.category ?? "OUTROS",
       };
 
       const payload = buildFormPayload(common, type as TransactionType, { pixType, scheduledFor });

@@ -32,26 +32,42 @@ export async function listTransactions(opts?: {
     const todayStart = dayStartTsFromAny(getTodayISO());
 
     return data.map((tx) => {
+        const txWithCategory = {
+            ...tx,
+            category: tx.type === "withdraw" || tx.type === "payment" || tx.type === "pix" ? (tx.category ?? "OUTROS") : "INCOME",
+        };
+
+        let normalizedTx = txWithCategory;
+        if (txWithCategory.status && typeof txWithCategory.status === 'string') {
+            const normalizedStatus = txWithCategory.status.toUpperCase() as TransactionStatus;
+            normalizedTx = { ...txWithCategory, status: normalizedStatus };
+        }
+
         if (
-            tx.status === "scheduled" &&
-            "scheduledFor" in tx &&
-            tx.scheduledFor &&
-            dayStartTsFromAny(tx.scheduledFor) < todayStart
+            normalizedTx.status === "SCHEDULED" &&
+            "scheduledFor" in normalizedTx &&
+            normalizedTx.scheduledFor &&
+            dayStartTsFromAny(normalizedTx.scheduledFor) < todayStart
         ) {
             return {
-                ...tx,
-                status: "cancelled",
-                previousStatus: tx.status,
+                ...normalizedTx,
+                status: "CANCELLED",
+                previousStatus: normalizedTx.status,
                 locked: true, // impedirá restore na UI
             };
         }
-        return tx;
+
+        return normalizedTx;
     });
 }
 
 export async function getTransaction(id: string) {
     const res = await fetch(`${BASE}/transactions/${id}`, { cache: "no-store" });
-    return j<AnyTransaction>(res);
+    const tx = await j<AnyTransaction>(res);
+    return {
+        ...tx,
+        category: tx.category ?? "OUTROS",
+    };
 }
 
 export async function createTransaction(input: Omit<AnyTransaction, "id">) {

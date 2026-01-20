@@ -6,7 +6,7 @@
       "description": "Depósito inicial",
       "amount": 2500,
       "date": "2025-09-20T10:00:00.000Z",
-      "status": "processed"
+      "status": "PROCESSED"
     },
     {
       "id": "t-004",
@@ -14,7 +14,7 @@
       "description": "Saque 24h",
       "amount": 100,
       "date": "2025-10-01T09:05:00.000Z",
-      "status": "processed"
+      "status": "PROCESSED"
     },
     {
       "id": "t-005",
@@ -22,7 +22,7 @@
       "description": "Salário",
       "amount": 8200,
       "date": "2025-10-05T08:00:00.000Z",
-      "status": "processed"
+      "status": "PROCESSED"
     },
     {
       "type": "pix",
@@ -30,10 +30,10 @@
       "amount": 100,
       "date": "2025-11-04T00:00:00.000Z",
       "pixType": "scheduled",
-      "status": "scheduled",
+      "status": "SCHEDULED",
       "scheduledFor": "2025-11-10T00:00:00.000Z",
       "id": "M2E__CP",
-      "previousStatus": "scheduled"
+      "previousStatus": "SCHEDULED"
     },
     {
       "id": "8066",
@@ -41,8 +41,9 @@
       "description": "rs",
       "amount": 10,
       "date": "2026-01-13T00:00:00.000Z",
-      "status": "processed",
-      "processingUntil": "2026-01-14T00:16:24.544Z"
+      "status": "PROCESSED",
+      "processingUntil": "2026-01-14T00:16:24.544Z",
+      "category": "OUTROS"
     },
     {
       "id": "3b99",
@@ -50,8 +51,19 @@
       "description": "12",
       "amount": 100,
       "date": "2026-01-28T00:00:00.000Z",
-      "status": "cancelled",
-      "previousStatus": "scheduled"
+      "status": "SCHEDULED",
+      "previousStatus": "SCHEDULED"
+    },
+    {
+      "id": "df6b",
+      "type": "withdraw",
+      "description": "saque",
+      "amount": 2000.06,
+      "date": "2026-01-15T00:00:00.000Z",
+      "status": "PROCESSED",
+      "processingUntil": "2026-01-15T03:53:38.806Z",
+      "category": "ALIMENTACAO",
+      "previousStatus": "PROCESSING"
     }
   ]
 }

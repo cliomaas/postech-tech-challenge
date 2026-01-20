@@ -1,10 +1,21 @@
 import { z } from "zod";
 
 export const transactionStatusSchema = z.enum([
-    "PENDING",
-    "COMPLETED",
+    "PROCESSING",
+    "PROCESSED",
+    "SCHEDULED",
     "FAILED",
-    "CANCELED",
+    "CANCELLED",
+    "CANCELLED_RESTORED",
+]);
+
+export const transactionCategorySchema = z.enum([
+    "ALIMENTACAO",
+    "MORADIA",
+    "LAZER",
+    "TRANSPORTE",
+    "OUTROS",
+    "INCOME",
 ]);
 
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
@@ -18,8 +29,8 @@ export const transactionSchema = z.object({
     date: z.string(),
     type: z.string(),
     description: z.string().optional(),
-    category: z.string().optional(),
-    status: z.string().optional(),
+    status: transactionStatusSchema.optional().default("PROCESSING"),
+    category: transactionCategorySchema.optional().default("OUTROS"),
 });
 
 export type Transaction = z.infer<typeof transactionSchema>;

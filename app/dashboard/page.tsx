@@ -1,5 +1,10 @@
 "use client";
 import BalanceCard from "@/components/charts/BalanceCard";
+import IncomeCard from "@/components/charts/IncomeCard";
+import ExpenseCard from "@/components/charts/ExpenseCard";
+import HighestExpenseCard from "@/components/charts/HighestExpenseCard";
+import MonthlyBalanceChart from "@/components/charts/MonthlyBalanceChart";
+import ExpenseCategoryChart from "@/components/charts/ExpenseCategoryChart";
 import Card from "@/components/ds/Card";
 import Button from "@/components/ds/Button";
 import TxTable from "@/components/TxTable";
@@ -17,8 +22,18 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <BalanceCard />
+        <IncomeCard />
+        <ExpenseCard />
+        <HighestExpenseCard />
+      </div>
+
+      <MonthlyBalanceChart />
+
+      <ExpenseCategoryChart />
+
+      <div className="grid md:grid-cols-1 gap-4">
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
