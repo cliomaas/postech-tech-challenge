@@ -108,6 +108,29 @@ npm run test         # executa testes (caso configurados)
 
 ---
 
+## 🔐 Autenticacao (ambiente cloud)
+
+Para proteger o acesso ao app em producao, foi adicionado **NextAuth (Credentials)**.
+Rotas protegidas: `/dashboard` e `/transactions` (via `middleware.ts`).
+
+Variaveis de ambiente necessarias:
+
+```
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=coloque-uma-string-segura
+ADMIN_EMAIL=seu-email@exemplo.com
+ADMIN_PASSWORD=sua-senha
+```
+
+> Em deploy (Vercel), configure essas variaveis no painel do projeto.
+
+Cadastro (mock via API):
+- A rota `POST /api/auth/register` envia usuarios para `NEXT_PUBLIC_API_URL` (ex: json-server no Render).
+- O login consulta `GET /users?email=...` nessa mesma API.
+- Senhas ficam em texto para demonstracao; para producao use banco real + hashing.
+
+---
+
 ## 📽️ Entrega / Demonstração
 
 O vídeo de entrega demonstra:

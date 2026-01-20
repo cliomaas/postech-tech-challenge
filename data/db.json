@@ -834,5 +834,13 @@
         }
       ]
     }
+  ],
+  "users": [
+    {
+      "id": "u-1768931795929",
+      "email": "fulano@gmail.com",
+      "password": "1234",
+      "name": "Fulano"
+    }
   ]
 }

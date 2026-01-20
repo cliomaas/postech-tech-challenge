@@ -13,7 +13,7 @@ import { brDateFromAny, txRawDate } from "@/lib/utils/date";
 import { formatBRL } from "@/src/core/money";
 import { DEFAULT_FILTERS, type Filters, TxFilters } from "./TxFilters";
 import { txLabel as tLabel } from "@/src/core/labels";
-import { cancelTransaction, createTransaction, listTransactions, restoreTransaction, updateTransaction } from "@/lib/api";
+import { cancelTransaction, createTransaction, listTransactions, restoreTransaction, updateTransaction } from "@/lib/backend";
 import { openAttachment } from "@/lib/utils/attachments";
 
 const PAGE_SIZE = 10;
