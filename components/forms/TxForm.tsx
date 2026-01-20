@@ -61,7 +61,9 @@ type Props = {
 };
 
 export default function TxForm({ initial, onSubmit }: Props) {
-  const [type, setType] = useState(initial?.type ?? "deposit");
+  const [type, setType] = useState<TransactionType>(
+    () => (initial?.type as TransactionType | undefined) ?? "deposit"
+  );
   const [description, setDescription] = useState(initial?.description ?? "");
   const [amount, setAmount] = useState(initial?.amount?.toString() ?? "");
   const isEdit = Boolean(initial?.id);
@@ -70,7 +72,7 @@ export default function TxForm({ initial, onSubmit }: Props) {
   const snackbar = useSnackbar();
   const [category, setCategory] = useState<Category>(() => {
     if (initial?.category) return initial.category;
-    return isExpenseType(initial?.type ?? "deposit") ? "OUTROS" : "INCOME";
+    return isExpenseType((initial?.type ?? "deposit") as TransactionType) ? "OUTROS" : "INCOME";
   });
   const [categoryTouched, setCategoryTouched] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>(initial?.attachments ?? []);
