@@ -6,6 +6,17 @@ import type { AnyTransaction } from "@/lib/types";
 import { useMemo } from "react";
 import { format, parseISO, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Bar,
+  BarChart,
+  Cell,
+  LabelList,
+  ResponsiveContainer,
+  ReferenceLine,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 type MonthlyData = {
   month: string;
@@ -69,106 +80,66 @@ export default function MonthlyBalanceChart() {
     );
   }
 
-  // Calcular range para o gráfico
-  const allValues = monthlyData.map((d) => d.balance);
-  const maxBalance = Math.max(...allValues, 0);
-  const minBalance = Math.min(...allValues, 0);
-  const maxValue = Math.max(Math.abs(maxBalance), Math.abs(minBalance), 1000);
-
   return (
     <Card className="p-6">
       <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
         Saldo Mensal
       </h3>
 
-      <div className="flex items-end justify-between gap-3 h-64">
-        {/* Eixo Y - Valores */}
-        <div className="flex flex-col justify-between h-full pb-8 pr-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-            {formatBRL(maxValue)}
-          </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-            {formatBRL(maxValue / 2)}
-          </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-            R$ 0,00
-          </span>
-          {minBalance < 0 && (
-            <>
-              <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                {formatBRL(-maxValue / 2)}
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                {formatBRL(-maxValue)}
-              </span>
-            </>
-          )}
-        </div>
-
-        {/* Gráfico de Barras */}
-        <div className="flex-1 flex items-end justify-between gap-2 h-full relative">
-          {/* Linha de zero na base */}
-          <div className="absolute left-0 right-0 bottom-8 h-px bg-gray-300 dark:bg-gray-600 z-0" />
-
-          {monthlyData.map((data) => {
-            // Altura da barra: porcentagem do espaço disponível (altura total - espaço dos labels)
-            const availableHeight = 100; // 100% do container menos o espaço dos labels (calculado como 2rem = ~8%)
-            const barHeightPercent = maxValue > 0 ? (Math.abs(data.balance) / maxValue) * availableHeight : 0;
-            const isPositive = data.balance >= 0;
-
-            return (
-              <div
-                key={data.monthKey}
-                className="flex-1 flex flex-col items-center relative"
-                style={{ height: "100%" }}
-              >
-                {/* Container da área do gráfico (altura disponível) */}
-                <div className="flex-1 w-full relative" style={{ paddingBottom: "2rem" }}>
-                  {/* Valor acima da barra */}
-                  {data.balance !== 0 && (
-                    <div
-                      className={`absolute w-full px-1 py-0.5 rounded text-xs font-medium text-center ${isPositive
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                        }`}
-                      style={{
-                        bottom: `${barHeightPercent}%`,
-                        marginBottom: "4px",
-                      }}
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={monthlyData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+            <XAxis
+              dataKey="month"
+              tick={{ fill: "#9ca3af", fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              tickFormatter={formatBRL}
+              tick={{ fill: "#9ca3af", fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
+              width={70}
+            />
+            <Tooltip
+              cursor={{ fill: "rgba(148, 163, 184, 0.08)" }}
+              formatter={(value) => formatBRL(Number(value))}
+              labelFormatter={(label) => `Mês: ${label}`}
+            />
+            <ReferenceLine y={0} stroke="rgba(148, 163, 184, 0.4)" strokeWidth={1} />
+            <Bar dataKey="balance" radius={[6, 6, 6, 6]}>
+              {monthlyData.map((entry) => (
+                <Cell
+                  key={entry.monthKey}
+                  fill={entry.balance >= 0 ? "#16a34a" : "#dc2626"}
+                />
+              ))}
+              <LabelList
+                dataKey="balance"
+                content={({ value, x, y, width, height }) => {
+                  const numeric = Number(value ?? 0);
+                  if (!width || !height) return null;
+                  const labelX = Number(x) + Number(width) / 2;
+                  const labelY =
+                    numeric >= 0 ? Number(y) - 6 : Number(y) + Number(height) + 14;
+                  return (
+                    <text
+                      x={labelX}
+                      y={labelY}
+                      textAnchor="middle"
+                      fill={numeric >= 0 ? "#86efac" : "#fecaca"}
+                      fontSize={12}
+                      fontWeight={600}
                     >
-                      {formatBRL(data.balance)}
-                    </div>
-                  )}
-
-                  {/* Barra - sempre começa do zero (bottom: 0 dentro deste container) */}
-                  {data.balance !== 0 && (
-                    <div
-                      className={`absolute w-full transition-all ${isPositive
-                          ? "bg-green-500 dark:bg-green-600 rounded-t"
-                          : "bg-red-500 dark:bg-red-600 rounded-b"
-                        }`}
-                      style={{
-                        bottom: 0,
-                        height: `${barHeightPercent}%`,
-                        minHeight: "4px",
-                      }}
-                    />
-                  )}
-
-                  {/* Barra zero (linha fina) */}
-                  {data.balance === 0 && (
-                    <div className="absolute bottom-0 w-full h-px bg-gray-400 dark:bg-gray-500" />
-                  )}
-                </div>
-
-                {/* Label do mês */}
-                <span className="text-xs text-gray-600 dark:text-gray-400 capitalize pt-1 w-full text-center">
-                  {data.month}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+                      {formatBRL(numeric)}
+                    </text>
+                  );
+                }}
+              />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </Card>
   );

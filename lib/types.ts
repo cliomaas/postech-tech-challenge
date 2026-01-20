@@ -1,5 +1,5 @@
 import type { Transaction } from "@/src/core/transaction";
-export type { Transaction, TransactionStatus } from "@/src/core/transaction";
+export type { Transaction, TransactionStatus, TransactionCategory } from "@/src/core/transaction";
 
 export type TransactionType = "deposit" | "transfer" | "payment" | "withdraw" | "pix";
 // export type TransactionStatus = "scheduled" | "processing" | "processed" | "cancelled" | "failed";

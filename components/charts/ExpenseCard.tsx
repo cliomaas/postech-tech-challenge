@@ -18,17 +18,20 @@ function calcExpense(txs: AnyTransaction[]): number {
 }
 
 export default function ExpenseCard() {
-    const txs = useTxStore((s) => s.transactions);
-    const expense = calcExpense(txs);
+  const txs = useTxStore((s) => s.transactions);
+  const expense = calcExpense(txs);
 
-    return (
-        <Card className="p-6">
-            <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Saídas</p>
-                <p className="mt-1 text-3xl font-semibold text-red-600 dark:text-red-300">
-                    {formatBRL(expense)}
-                </p>
-            </div>
-        </Card>
-    );
+  return (
+    <Card className="p-5">
+      <div>
+        <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+          Saídas
+        </p>
+        <p className="mt-2 text-[1.35rem] sm:text-[1.6rem] font-semibold leading-tight tracking-tight text-rose-600 dark:text-rose-300">
+          {formatBRL(expense)}
+        </p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Total do mês</p>
+      </div>
+    </Card>
+  );
 }

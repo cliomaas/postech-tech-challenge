@@ -13,20 +13,30 @@ export async function listTransactions(opts?: {
     q?: string;
     type?: string;
     status?: string;
+    category?: string;
     _sort?: string;
     _order?: "asc" | "desc";
     _page?: number;
     _limit?: number;
-}): Promise<AnyTransaction[]> {
+}, signal?: AbortSignal): Promise<AnyTransaction[]> {
     const p = new URLSearchParams();
     if (opts?.q) p.set("q", opts.q);
     if (opts?.type) p.set("type", opts.type);
     if (opts?.status) p.set("status", opts.status);
+    if (opts?.category) p.set("category", opts.category);
     if (opts?._sort) p.set("_sort", opts._sort);
     if (opts?._order) p.set("_order", opts._order);
-    if (opts?._page) p.set("_page", String(opts._page));
     if (opts?._limit) p.set("_limit", String(opts._limit));
-    const res = await fetch(`${BASE}/transactions?${p.toString()}`, { cache: "no-store" });
+    if (opts?._page && opts?._limit) {
+        const start = (opts._page - 1) * opts._limit;
+        p.set("_start", String(start));
+    } else if (opts?._page) {
+        p.set("_page", String(opts._page));
+    }
+    const res = await fetch(`${BASE}/transactions?${p.toString()}`, {
+        cache: "no-store",
+        signal,
+    });
     const data = await j<AnyTransaction[]>(res);
 
     const todayStart = dayStartTsFromAny(getTodayISO());

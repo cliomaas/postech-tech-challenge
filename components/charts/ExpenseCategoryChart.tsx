@@ -137,8 +137,11 @@ export default function ExpenseCategoryChart() {
         <div className="flex-1 w-full">
           <div className="space-y-3">
             {categoryData.map((item) => (
-              <div key={item.category} className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div
+                key={item.category}
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 w-full"
+              >
+                <div className="flex items-center gap-3 min-w-0">
                   <div
                     className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: item.color }}
@@ -147,7 +150,7 @@ export default function ExpenseCategoryChart() {
                     {CATEGORY_LABELS[item.category] || item.category}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-right max-w-full">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     {item.percentage.toFixed(1)}%
                   </span>
