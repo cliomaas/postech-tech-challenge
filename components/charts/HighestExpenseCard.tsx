@@ -19,28 +19,33 @@ function findHighestExpense(txs: AnyTransaction[]): { amount: number; descriptio
 }
 
 export default function HighestExpenseCard() {
-    const txs = useTxStore((s) => s.transactions);
-    const highestExpense = findHighestExpense(txs);
+  const txs = useTxStore((s) => s.transactions);
+  const highestExpense = findHighestExpense(txs);
 
-    return (
-        <Card className="p-6">
-            <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Maior Gasto</p>
-                {highestExpense ? (
-                    <>
-                        <p className="mt-1 text-3xl font-semibold text-red-600 dark:text-red-300">
-                            {formatBRL(highestExpense.amount)}
-                        </p>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate">
-                            {highestExpense.description}
-                        </p>
-                    </>
-                ) : (
-                    <p className="mt-1 text-lg text-gray-500 dark:text-gray-400">
-                        Nenhum gasto encontrado
-                    </p>
-                )}
-            </div>
-        </Card>
-    );
+  return (
+    <Card className="p-5">
+      <div>
+        <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+          Maior Gasto
+        </p>
+        {highestExpense ? (
+          <>
+            <p className="mt-2 text-[1.35rem] sm:text-[1.6rem] font-semibold leading-tight tracking-tight text-rose-600 dark:text-rose-300">
+              {formatBRL(highestExpense.amount)}
+            </p>
+            <p className="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+              Detalhe
+            </p>
+            <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 truncate">
+              {highestExpense.description}
+            </p>
+          </>
+        ) : (
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Nenhum gasto encontrado
+          </p>
+        )}
+      </div>
+    </Card>
+  );
 }

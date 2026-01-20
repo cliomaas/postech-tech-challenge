@@ -22,16 +22,19 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <BalanceCard />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+        <div className="lg:col-span-2">
+          <BalanceCard />
+        </div>
         <IncomeCard />
         <ExpenseCard />
         <HighestExpenseCard />
       </div>
 
-      <MonthlyBalanceChart />
-
-      <ExpenseCategoryChart />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <MonthlyBalanceChart />
+        <ExpenseCategoryChart />
+      </div>
 
       <div className="grid md:grid-cols-1 gap-4">
         <Card className="p-6">

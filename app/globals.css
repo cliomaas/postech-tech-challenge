@@ -126,6 +126,14 @@ body {
   @apply bg-bg text-fg;
 }
 
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24
+}
+
 .container {
   @apply max-w-5xl mx-auto px-4;
 }

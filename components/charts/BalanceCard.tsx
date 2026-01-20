@@ -10,18 +10,24 @@ export default function BalanceCard() {
   const balance = calcBalance(txs);
 
   return (
-    <Card className="p-6">
+    <Card className="relative overflow-hidden p-6 lg:p-7">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500/70 via-emerald-400/40 to-transparent" />
       <div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Saldo</p>
+        <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+          Saldo
+        </p>
         <p
           className={clsx(
-            "mt-1 text-3xl font-semibold",
+            "mt-2 text-4xl font-semibold tracking-tight",
             balance >= 0
-              ? "text-green-600 dark:text-green-300"
-              : "text-red-600 dark:text-red-300"
+              ? "text-emerald-600 dark:text-emerald-300"
+              : "text-rose-600 dark:text-rose-300"
           )}
         >
           {formatBRL(balance)}
+        </p>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          Disponível neste mês
         </p>
       </div>
     </Card>

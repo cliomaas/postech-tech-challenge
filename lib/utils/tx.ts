@@ -6,7 +6,7 @@ import {
     PixType,
 } from "../types";
 import { toISOFromDatetimeLocal } from "./date";
-import { transactionCategorySchema } from "@/src/core/transaction";
+import { attachmentSchema, transactionCategorySchema } from "@/src/core/transaction";
 import { z } from "zod";
 
 type NonPixPayload = Omit<Transaction, "id" | "status"> & {
@@ -29,15 +29,31 @@ export type RuntimeFlags = {
     processingUntil?: string; // ISO when processed
 };
 
-export type FormPayload = NonPixPayload | PixCreatePayload;
+export type FormPayload = (NonPixPayload | PixCreatePayload) & {
+    attachments?: z.infer<typeof attachmentSchema>[];
+};
 
 export function buildFormPayload(
-    base: { description: string; amount: number; date: string; category?: z.infer<typeof transactionCategorySchema> },
+    base: {
+        description: string;
+        amount: number;
+        date: string;
+        category?: z.infer<typeof transactionCategorySchema>;
+        attachments?: z.infer<typeof attachmentSchema>[];
+    },
     type: TransactionType,
     pix: { pixType: "normal" | "scheduled"; scheduledFor?: string }
 ): FormPayload {
     const category = base.category ?? "OUTROS";
-    if (type !== "pix") return { type, ...base, category } as NonPixPayload;
+    const attachments = base.attachments?.length ? base.attachments : undefined;
+    if (type !== "pix") {
+        return {
+            type,
+            ...base,
+            category,
+            ...(attachments ? { attachments } : {}),
+        } as NonPixPayload;
+    }
 
     return pix.pixType === "scheduled"
         ? {
@@ -46,8 +62,9 @@ export function buildFormPayload(
             category,
             pixType: "scheduled",
             scheduledFor: toISOFromDatetimeLocal(pix.scheduledFor || ""),
+            ...(attachments ? { attachments } : {}),
         }
-        : { type: "pix", ...base, category, pixType: "normal" };
+        : { type: "pix", ...base, category, pixType: "normal", ...(attachments ? { attachments } : {}) };
 }
 
 export function finalizeFromForm(
@@ -57,6 +74,7 @@ export function finalizeFromForm(
     const nowISO = now.toISOString();
     console.log('datas', 'now', now, 'nowISO', nowISO, 'p', p)
     const isFuture = new Date(p.date) > now;
+    const attachments = p.attachments?.length ? { attachments: p.attachments } : {};
 
     if (p.type === "pix") {
         if (p.pixType === "scheduled") {
@@ -69,6 +87,7 @@ export function finalizeFromForm(
                 status: "SCHEDULED",
                 ...(p.scheduledFor ? { scheduledFor: p.scheduledFor } : {}),
                 category: p.category,
+                ...attachments,
             };
             return tx;
         }
@@ -83,6 +102,7 @@ export function finalizeFromForm(
             status: "PROCESSING",
             processingUntil: until,
             category: p.category,
+            ...attachments,
         };
         return tx;
     }
@@ -95,6 +115,7 @@ export function finalizeFromForm(
             date: p.date,
             status: "SCHEDULED",
             category: p.category,
+            ...attachments,
         };
         return tx;
     }
@@ -108,6 +129,7 @@ export function finalizeFromForm(
         status: "PROCESSING",
         processingUntil: until,
         category: p.category,
+        ...attachments,
     };
     return tx;
 }
