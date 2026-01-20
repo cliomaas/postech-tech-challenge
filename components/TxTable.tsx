@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import Button from "@/components/ds/Button";
 import Modal from "@/components/ds/Modal";
 import TxForm from "@/components/forms/TxForm";
-import type { AnyTransaction, TransactionStatus } from "@/lib/types";
+import type { AnyTransaction } from "@/lib/types";
 import { getTxActionState } from "@/lib/utils/tx-actions";
 import { finalizeFromForm } from "@/lib/utils/tx";
 import Badge from "./ds/Badge";
@@ -13,15 +13,21 @@ import { brDateFromAny, txRawDate } from "@/lib/utils/date";
 import { formatBRL } from "@/src/core/money";
 import { DEFAULT_FILTERS, type Filters, TxFilters } from "./TxFilters";
 import { txLabel as tLabel } from "@/src/core/labels";
-import { cancelTransaction, createTransaction, listTransactions, restoreTransaction, updateTransaction } from "@/lib/backend";
 import { openAttachment } from "@/lib/utils/attachments";
+import { useTxStore } from "@/lib/store";
 
 const PAGE_SIZE = 10;
 
 export default function TxTable() {
   const snackbar = useSnackbar();
-  const [transactions, setTransactions] = useState<AnyTransaction[]>([]);
-  const [loading, setLoading] = useState(false);
+  const transactions = useTxStore((s) => s.transactions);
+  const loading = useTxStore((s) => s.loading);
+  const fetchAll = useTxStore((s) => s.fetchAll);
+  const add = useTxStore((s) => s.add);
+  const patch = useTxStore((s) => s.patch);
+  const cancel = useTxStore((s) => s.cancel);
+  const restore = useTxStore((s) => s.restore);
+  const setNotifier = useTxStore((s) => s.setNotifier);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [page, setPage] = useState(1);
   const [filtersState, setFiltersState] = useState({ query: "", filters: DEFAULT_FILTERS });
@@ -33,23 +39,23 @@ export default function TxTable() {
   const negativeTypes = new Set<AnyTransaction["type"]>(["withdraw", "payment", "pix"]);
 
   const loadAll = useCallback(async () => {
-    setLoading(true);
-
     try {
-      const data = await listTransactions({ _sort: "date", _order: "desc" });
-      setTransactions(data);
-      setHasLoadedOnce(true);
+      await fetchAll();
     } catch (err) {
       snackbar.error("Erro ao carregar transações");
-      setHasLoadedOnce(true);
     } finally {
-      setLoading(false);
+      setHasLoadedOnce(true);
     }
-  }, [snackbar]);
+  }, [fetchAll, snackbar]);
 
   useEffect(() => {
     loadAll();
   }, [loadAll]);
+
+  useEffect(() => {
+    setNotifier({ success: snackbar.success, error: snackbar.error });
+    return () => setNotifier(undefined);
+  }, [setNotifier, snackbar]);
 
   const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
     if (observerRef.current) observerRef.current.disconnect();
@@ -71,40 +77,20 @@ export default function TxTable() {
   }, []);
 
   const handleCancel = useCallback(async (id: string) => {
-    const tx = transactions.find((item) => item.id === id);
-    if (!tx) return;
-    const previousStatus = tx.status as TransactionStatus;
-    setTransactions((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, previousStatus: item.status as TransactionStatus, status: "CANCELLED" }
-          : item
-      )
-    );
     try {
-      await cancelTransaction(id, previousStatus);
+      await cancel(id);
     } catch {
-      setTransactions((prev) => prev.map((item) => (item.id === id ? tx : item)));
       snackbar.error("Erro ao cancelar transação");
     }
-  }, [snackbar, transactions]);
+  }, [cancel, snackbar]);
 
   const handleRestore = useCallback(async (id: string) => {
-    const tx = transactions.find((item) => item.id === id);
-    if (!tx) return;
-    const restoreTo = ((tx as any).previousStatus ?? "SCHEDULED") as TransactionStatus;
-    setTransactions((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: restoreTo, previousStatus: undefined } : item
-      )
-    );
     try {
-      await restoreTransaction(id, restoreTo);
+      await restore(id);
     } catch {
-      setTransactions((prev) => prev.map((item) => (item.id === id ? tx : item)));
       snackbar.error("Erro ao restaurar transação");
     }
-  }, [snackbar, transactions]);
+  }, [restore, snackbar]);
 
   return (
     <div className="space-y-3">
@@ -291,10 +277,7 @@ export default function TxTable() {
             onSubmit={async (form) => {
               const finalized = finalizeFromForm(form);
               try {
-                const updated = await updateTransaction(edit.id, finalized);
-                setTransactions((prev) =>
-                  prev.map((t) => (t.id === edit.id ? { ...t, ...updated } : t))
-                );
+                await patch(edit.id, finalized);
                 setEdit(null);
               } catch {
                 snackbar.error("Erro ao editar transação");
@@ -309,9 +292,8 @@ export default function TxTable() {
         <TxForm
           onSubmit={(form) => {
             const txWithoutId = finalizeFromForm(form);
-            createTransaction(txWithoutId)
-              .then((created) => {
-                setTransactions((prev) => [created, ...prev]);
+            add(txWithoutId)
+              .then(() => {
                 setCreateOpen(false);
               })
               .catch(() => {
