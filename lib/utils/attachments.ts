@@ -35,9 +35,6 @@ export function openAttachment(attachment: AttachmentRef) {
   }
 
   const blobUrl = URL.createObjectURL(blob);
-  const opened = window.open(blobUrl, "_blank", "noopener,noreferrer");
-  if (!opened) {
-    window.location.href = blobUrl;
-  }
+  window.open(blobUrl, "_blank", "noopener,noreferrer");
   setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }

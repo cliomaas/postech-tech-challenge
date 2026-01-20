@@ -4,8 +4,10 @@ import { useTxStore } from "@/lib/store";
 import { formatBRL } from "@/src/core/money";
 import type { AnyTransaction } from "@/lib/types";
 import { useMemo } from "react";
-import { format, parseISO, startOfMonth } from "date-fns";
+import { format, isValid, parseISO, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import Select from "@/components/ds/Select";
+import { useMonthRange } from "./useMonthRange";
 import {
   Bar,
   BarChart,
@@ -65,16 +67,37 @@ function calculateMonthlyBalance(txs: AnyTransaction[]): MonthlyData[] {
 
 export default function MonthlyBalanceChart() {
   const txs = useTxStore((s) => s.transactions);
-  const monthlyData = useMemo(() => calculateMonthlyBalance(txs), [txs]);
+  const processedTxs = useMemo(
+    () => txs.filter((t) => t.status !== "CANCELLED" && t.status === "PROCESSED"),
+    [txs]
+  );
+  const { options, start, end, setStart, setEnd } = useMonthRange(processedTxs);
+
+  const filteredTxs = useMemo(() => {
+    if (!start || !end) return processedTxs;
+    const minKey = start <= end ? start : end;
+    const maxKey = start <= end ? end : start;
+    return processedTxs.filter((t) => {
+      const date = parseISO(t.date);
+      if (!isValid(date)) return false;
+      const key = format(startOfMonth(date), "yyyy-MM");
+      return key >= minKey && key <= maxKey;
+    });
+  }, [processedTxs, start, end]);
+
+  const monthlyData = useMemo(() => calculateMonthlyBalance(filteredTxs), [filteredTxs]);
 
   if (monthlyData.length === 0) {
+    const message = options.length
+      ? "Nenhum dado para o período selecionado"
+      : "Nenhuma transação processada encontrada";
     return (
       <Card className="p-6">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
           Saldo Mensal
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Nenhuma transação processada encontrada
+          {message}
         </p>
       </Card>
     );
@@ -85,6 +108,37 @@ export default function MonthlyBalanceChart() {
       <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
         Saldo Mensal
       </h3>
+
+      {options.length > 1 && (
+        <div className="mb-4 flex flex-wrap items-end gap-3">
+          <div className="w-36">
+            <Select
+              label="De"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+            >
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-36">
+            <Select
+              label="Até"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+            >
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+      )}
 
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
