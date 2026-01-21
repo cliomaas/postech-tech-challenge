@@ -6,6 +6,7 @@
 # next
 /.next/
 /out/
+/apps/**/dist/
 
 # logs
 npm-debug.log*

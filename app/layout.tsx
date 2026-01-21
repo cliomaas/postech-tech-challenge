@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import { SnackbarProvider } from "@/components/ds/SnackbarProvider";
 import Header from "@/components/header";
+import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "ByteBank — Tech Challenge",
@@ -15,6 +16,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
         {/* dark mode script */}
         <script
           dangerouslySetInnerHTML={{
@@ -34,11 +39,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <ThemeProvider>
-          <SnackbarProvider>
-            <Header />
-            <main className="container py-6">{children}</main>
-            <footer className="container py-10 text-center text-muted text-sm">Tech Challenge — Fase 1</footer>
-          </SnackbarProvider>
+          <AuthProvider>
+            <SnackbarProvider>
+              <Header />
+              <main className="container py-6">{children}</main>
+              <footer className="container py-10 text-center text-muted text-sm">Tech Challenge — Fase 1</footer>
+            </SnackbarProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html >

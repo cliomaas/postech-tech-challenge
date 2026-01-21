@@ -6,9 +6,10 @@ O projeto simula uma interface bancária moderna, permitindo **visualizar, criar
 ---
 
 ## 🚀 Tecnologias utilizadas
-- [Next.js 14](https://nextjs.org/) + React 18  
+- [Next.js 15](https://nextjs.org/) + React 19  
 - [TypeScript](https://www.typescriptlang.org/)  
 - [Zustand](https://zustand-demo.pmnd.rs/) (persistência em estado local)  
+- [Single SPA](https://single-spa.js.org/) + Vite (microfrontends independentes)  
 - [Tailwind CSS](https://tailwindcss.com/)  
 - **Design System** próprio documentado em [Storybook](https://storybook.js.org/) (`npm run storybook`)  
 - [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/)  
@@ -24,6 +25,31 @@ O projeto simula uma interface bancária moderna, permitindo **visualizar, criar
 | **Formulário (`TxForm`)**            | Modal de criação/edição. Bloqueia **datas anteriores a hoje**, valida **valor** e **descrição**. |
 | **Store (`useTxStore`)**             | Gerencia as ações `add`, `patch`, `cancel`, `restore`.                                           |
 | **Design System (`/components/ds`)** | Conjunto reutilizável de componentes (`Button`, `Input`, `Select`, `Modal`, `Badge`).            |
+
+---
+
+## 🧩 Microfrontends (Single SPA)
+
+- **Shell SSR/SSG:** Next.js mantém o SSR/SSG e entrega o layout base.
+- **MFEs independentes:** `Dashboard` e `Transações` vivem em `apps/mfe-dashboard` e `apps/mfe-transactions`.
+- **Build isolado:** cada MFE gera bundle UMD via Vite e é servido localmente (ports 9101/9102).
+- **Roteamento:** `activeWhen` em `src/mf/root-config.ts` ativa cada MFE conforme a rota.
+- **Comunicação:** eventos `CustomEvent` (`mfe:tx`) em `src/mf/events.ts` notificam mudanças de transações.
+
+URLs locais padrão dos MFEs:
+- `http://localhost:9101/mfe-dashboard.umd.js`
+- `http://localhost:9102/mfe-transactions.umd.js`
+
+Variáveis opcionais (shell):
+```
+NEXT_PUBLIC_MFE_DASHBOARD_URL=http://localhost:9101/mfe-dashboard.umd.js
+NEXT_PUBLIC_MFE_TRANSACTIONS_URL=http://localhost:9102/mfe-transactions.umd.js
+```
+
+Variáveis opcionais (MFEs):
+```
+VITE_API_URL=http://localhost:4000
+```
 
 ---
 
@@ -77,6 +103,10 @@ Componentes principais:
 # 1. Instalar dependências
 npm install
 
+# 1.1. Instalar dependências dos MFEs (uma vez)
+npm --prefix apps/mfe-dashboard install
+npm --prefix apps/mfe-transactions install
+
 # 2. Rodar em modo de desenvolvimento
 npm run dev:all
 
@@ -86,11 +116,40 @@ http://localhost:3000
 
 ---
 
+## 🐳 Docker
+
+```bash
+docker compose up --build
+```
+
+Portas expostas:
+- `3000` (Next.js)
+- `4000` (JSON Server)
+- `9101` (mfe-dashboard)
+- `9102` (mfe-transactions)
+
+As variáveis de ambiente já estão no `docker-compose.yml` para rodar tudo localmente.
+
+---
+
+## 🩹 Troubleshooting
+
+Problemas comuns e soluções rápidas:
+- **MFE não carrega**: confirme se `http://localhost:9101/mfe-dashboard.umd.js` e `http://localhost:9102/mfe-transactions.umd.js` respondem.
+- **Erro `process is not defined`**: reinicie os MFEs (Vite). O build precisa do `define` no Vite config.
+- **Erro `missing lifecycle exports`**: o bundle UMD precisa expor `bootstrap/mount/unmount` no `window` (já configurado).
+- **NextAuth error `NO_SECRET`**: verifique `NEXTAUTH_SECRET` no `.env.local` ou no `docker-compose.yml`.
+
+---
+
 ## 🧪 Scripts disponíveis
 
 ```bash
 npm run dev          # inicia o servidor local (Next.js)
-npm run build        # cria a versão de produção
+npm run dev:mfes     # inicia os MFEs (Vite build+preview)
+npm run dev:all      # API + Next + MFEs
+npm run api          # JSON Server em http://localhost:4000
+npm run build        # cria a versão de produção (shell)
 npm run lint         # verifica erros de lint
 npm run storybook    # inicia o Storybook
 npm run test         # executa testes (caso configurados)
@@ -105,6 +164,29 @@ npm run test         # executa testes (caso configurados)
 - Datas são normalizadas em formato `YYYY-MM-DD` e bloqueadas para o passado.
 - O layout segue uma hierarquia simples e responsiva com **Tailwind**.
 - O **Design System** garante consistência visual e facilita manutenção.
+
+---
+
+## 🔐 Autenticacao (ambiente cloud)
+
+Para proteger o acesso ao app em producao, foi adicionado **NextAuth (Credentials)**.
+Rotas protegidas: `/dashboard` e `/transactions` (via `middleware.ts`).
+
+Variaveis de ambiente necessarias:
+
+```
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=coloque-uma-string-segura
+ADMIN_EMAIL=seu-email@exemplo.com
+ADMIN_PASSWORD=sua-senha
+```
+
+> Em deploy (Vercel), configure essas variaveis no painel do projeto.
+
+Cadastro (mock via API):
+- A rota `POST /api/auth/register` envia usuarios para `NEXT_PUBLIC_API_URL` (ex: json-server no Render).
+- O login consulta `GET /users?email=...` nessa mesma API.
+- Senhas ficam em texto para demonstracao; para producao use banco real + hashing.
 
 ---
 

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import Button from "@/components/ds/Button";
 import { ThemeToggle } from "./ui/ThemeToggle";
+import { signOut, useSession } from "next-auth/react";
 import type { Route } from "next";
 import type { UrlObject } from "url";
 
@@ -14,6 +15,7 @@ export default function Header() {
     const pathname = usePathname();
     const isHome = pathname === "/";
     const [open, setOpen] = useState(false);
+    const { data: session } = useSession();
 
     const headerClass = clsx(
         "sticky top-0 z-40 border-b backdrop-blur supports-[backdrop-filter]:bg-white/60",
@@ -49,21 +51,24 @@ export default function Header() {
                     <div className="hidden md:flex items-center gap-2">
                         {isHome ? (
                             <>
-                                <Link href="/dashboard">
+                                <Link href="/login">
                                     <Button variant="ghost">Já tenho conta</Button>
                                 </Link>
-                                <Link href="/dashboard">
+                                <Link href="/register">
                                     <Button>Abra sua conta</Button>
                                 </Link>
                             </>
                         ) : (
                             <>
-                                <Link href="/">
-                                    <Button variant="ghost">Configurações</Button>
-                                </Link>
-                                <Link href="/">
-                                    <Button variant="danger">Sair</Button>
-                                </Link>
+                                {session ? (
+                                    <Button variant="danger" onClick={() => signOut({ callbackUrl: "/" })}>
+                                        Sair
+                                    </Button>
+                                ) : (
+                                    <Link href="/login">
+                                        <Button variant="ghost">Entrar</Button>
+                                    </Link>
+                                )}
                             </>
                         )}
                     </div>
@@ -118,7 +123,8 @@ export default function Header() {
                                     <LiLink href="#sobre" onClickClose={() => setOpen(false)}>Sobre</LiLink>
                                     <LiLink href="#servicos" onClickClose={() => setOpen(false)}>Serviços</LiLink>
                                     <hr className="my-2 border-black/10 dark:border-white/10" />
-                                    <LiLink href="/dashboard" onClickClose={() => setOpen(false)}>Entrar no app</LiLink>
+                                    <LiLink href="/login" onClickClose={() => setOpen(false)}>Entrar no app</LiLink>
+                                    <LiLink href="/register" onClickClose={() => setOpen(false)}>Criar conta</LiLink>
                                 </ul>
                             ) : (
                                 <ul className="space-y-1">
@@ -126,8 +132,22 @@ export default function Header() {
                                     <LiLink href="/transactions" active={pathname?.startsWith("/transactions")} onClickClose={() => setOpen(false)}>Transações</LiLink>
                                     <LiLink href="/" active={pathname?.startsWith("/cards")} onClickClose={() => setOpen(false)}>Cartões</LiLink>
                                     <hr className="my-2 border-black/10 dark:border-white/10" />
-                                    <LiLink href="/" onClickClose={() => setOpen(false)}>Configurações</LiLink>
-                                    <LiLink href="/" onClickClose={() => setOpen(false)} danger>Sair</LiLink>
+                                    {session ? (
+                                        <li>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setOpen(false);
+                                                    signOut({ callbackUrl: "/" });
+                                                }}
+                                                className="w-full text-left rounded-xl px-3 py-2 text-sm text-white bg-red-600 hover:bg-red-700"
+                                            >
+                                                Sair
+                                            </button>
+                                        </li>
+                                    ) : (
+                                        <LiLink href="/login" onClickClose={() => setOpen(false)}>Entrar</LiLink>
+                                    )}
                                 </ul>
                             )}
                         </nav>

@@ -1,3 +1,6 @@
+import { formatDateBRFromAny, dayStartTsUTCFromAny } from "../../src/core/date";
+
+
 /**
  * Convert "yyyy-mm-dd" (input[type="date"]) to ISO string.
  * Example: "2025-11-01" -> "2025-11-01T03:00:00.000Z" (depending on the local timezone)
@@ -33,22 +36,9 @@ export function txRawDate(t: { date: string; status: string; scheduledFor?: stri
 }
 
 export function brDateFromAny(input: string): string {
-    const s = String(input);
-    const ymd = s.slice(0, 10);
-    if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
-        const [y, m, d] = ymd.split("-");
-        return `${d}/${m}/${y}`;
-    }
-    return new Date(s).toLocaleDateString("pt-BR", { timeZone: "UTC" });
+    return formatDateBRFromAny(input);
 }
 
 export function dayStartTsFromAny(input: string): number {
-    const s = String(input);
-    const ymd = s.slice(0, 10);
-    if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
-        const [y, m, d] = ymd.split("-").map(Number);
-        return new Date(y, m - 1, d).getTime();
-    }
-    const d = new Date(new Date(s).toLocaleString("en-US", { timeZone: "UTC" }));
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    return dayStartTsUTCFromAny(input);
 }

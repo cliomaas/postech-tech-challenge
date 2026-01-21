@@ -1,10 +1,10 @@
-import TxTable from "@/components/TxTable";
+import SingleSpaRoot from "@/components/mfe/SingleSpaRoot";
 
 export default function TransactionsPage(){
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Transações</h1>
-      <TxTable />
-    </div>
+    <>
+      <SingleSpaRoot />
+      <div id="mfe-transactions" />
+    </>
   );
 }

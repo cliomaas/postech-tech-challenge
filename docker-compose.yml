@@ -1,0 +1,29 @@
+name: postech-tech-challenge
+
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"   
+      - "4000:4000"   
+      - "6006:6006"   
+      - "9101:9101"
+      - "9102:9102"
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NEXT_PUBLIC_MFE_DASHBOARD_URL=http://localhost:9101/mfe-dashboard.umd.js
+      - NEXT_PUBLIC_MFE_TRANSACTIONS_URL=http://localhost:9102/mfe-transactions.umd.js
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - VITE_API_URL=http://localhost:4000
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=dev-secret-local
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: >
+      sh -c "npm install
+      && npm --prefix apps/mfe-dashboard install
+      && npm --prefix apps/mfe-transactions install
+      && npm run dev:all"
