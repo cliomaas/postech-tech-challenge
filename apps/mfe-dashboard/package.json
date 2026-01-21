@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite build --watch\" \"vite preview --strictPort --port 9101 --host 0.0.0.0\"",
-    "build": "vite build",
-    "preview": "vite preview --strictPort --port 9101"
+    "build": "node ./node_modules/vite/bin/vite.js build",
+    "preview": "node ./node_modules/vite/bin/vite.js preview --strictPort --port 9101"
   },
   "dependencies": {
     "react": "19.1.0",
