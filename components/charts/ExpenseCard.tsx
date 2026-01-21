@@ -5,16 +5,16 @@ import { formatBRL } from "@/src/core/money";
 import type { AnyTransaction } from "@/lib/types";
 
 function calcExpense(txs: AnyTransaction[]): number {
-    return txs
-        .filter((t) => t.status !== "CANCELLED")
-        .reduce((acc, t) => {
-            if (t.status !== "PROCESSED") return acc;
-            // Saídas: withdraw, payment e pix são negativos
-            if (t.type === "withdraw" || t.type === "payment" || t.type === "pix") {
-                return acc + t.amount;
-            }
-            return acc;
-        }, 0);
+  return txs
+    .filter((t) => t.status !== "CANCELLED")
+    .reduce((acc, t) => {
+      if (t.status !== "PROCESSED") return acc;
+      // Saídas: withdraw, payment e pix == negative
+      if (t.type === "withdraw" || t.type === "payment" || t.type === "pix") {
+        return acc + t.amount;
+      }
+      return acc;
+    }, 0);
 }
 
 export default function ExpenseCard() {

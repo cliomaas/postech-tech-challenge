@@ -17,7 +17,17 @@ async function fetchUserByEmail(email: string): Promise<UserRecord | null> {
   }
 }
 
+const isDev = process.env.NODE_ENV === "development";
+const devSecret = "dev-secret-local";
+const devUrl = "http://localhost:3000";
+
+if (isDev) {
+  process.env.NEXTAUTH_SECRET ??= devSecret;
+  process.env.NEXTAUTH_URL ??= devUrl;
+}
+
 const handler = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Credentials",

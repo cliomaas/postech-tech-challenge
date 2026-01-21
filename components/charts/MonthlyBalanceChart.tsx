@@ -22,7 +22,7 @@ import {
 
 type MonthlyData = {
   month: string;
-  monthKey: string; // "2025-01" para ordenação
+  monthKey: string; // "2025-01" 
   balance: number;
 };
 

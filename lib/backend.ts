@@ -1,9 +1,9 @@
 // HTTP client for the external API (Render/json-server), not Next.js route handlers.
 import type { AnyTransaction, TransactionStatus } from "@/lib/types";
 import { getTodayISO, dayStartTsFromAny } from "@/lib/utils/date";
+import { getApiBase } from "@/lib/env";
 
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const BASE = getApiBase();
 
 async function j<T>(res: Response): Promise<T> {
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
@@ -64,7 +64,7 @@ export async function listTransactions(opts?: {
                 ...normalizedTx,
                 status: "CANCELLED",
                 previousStatus: normalizedTx.status,
-                locked: true, // impedirá restore na UI
+                locked: true, // restored blocked
             };
         }
 

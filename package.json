@@ -5,7 +5,9 @@
   "scripts": {
     "api": "json-server -w data/db.json -p 4000",
     "dev": "next dev --turbopack",
-    "dev:all": "concurrently \"npm run api\" \"npm run dev\"",
+    "dev:mfes": "concurrently \"npm --prefix apps/mfe-dashboard run dev\" \"npm --prefix apps/mfe-transactions run dev\"",
+    "dev:mfes:all": "npm run dev:mfes",
+    "dev:all": "concurrently \"npm run api\" \"npm run dev\" \"npm run dev:mfes\"",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
@@ -21,6 +23,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.6.0",
+    "single-spa": "^6.0.0",
     "zod": "^4.3.5",
     "zustand": "^5.0.8"
   },
@@ -49,5 +52,8 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "optionalDependencies": {
+    "lightningcss-darwin-x64": "^1.30.1"
   }
 }
