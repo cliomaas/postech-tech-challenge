@@ -9,10 +9,15 @@
     "preview": "node ./node_modules/vite/bin/vite.js preview --strictPort --port 9101"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "recharts": "^2.15.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "single-spa": "^6.0.0",
-    "single-spa-react": "^6.0.0"
+    "single-spa-react": "^6.0.0",
+    "zod": "^4.1.0",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.0",
