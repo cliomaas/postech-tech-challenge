@@ -1,6 +1,6 @@
 import TransactionsView from "@/components/pages/TransactionsView";
 import { SnackbarProvider } from "@/components/ds/SnackbarProvider";
-import { ThemeProvider } from "@/theme/ThemeProvider";
+import { ThemeProvider } from "./providers/ThemeProvider";
 
 export default function Root() {
   return (
