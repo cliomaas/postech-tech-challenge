@@ -19,7 +19,7 @@ const MAX_FILE_SIZE = 3 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "application/pdf"]);
 
 const CATEGORY_KEYWORDS: Record<Category, string[]> = {
-  ALIMENTACAO: ["mercado", "supermercado", "ifood", "restaurante", "padaria", "lanche", "cafe"],
+  ALIMENTACAO: ["mercado", "supermercado", "ifood", "comida", "alimentação", "restaurante", "padaria", "lanche", "cafe"],
   MORADIA: ["aluguel", "condominio", "condomínio", "luz", "energia", "agua", "água", "internet", "gas", "gás"],
   LAZER: ["cinema", "netflix", "spotify", "show", "viagem", "bar", "jogo"],
   TRANSPORTE: ["uber", "99", "taxi", "táxi", "gasolina", "combustivel", "combustível", "metro", "metrô", "onibus", "ônibus"],
@@ -177,7 +177,7 @@ export default function TxForm({ initial, onSubmit }: Props) {
       if (!amount.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
         nextErrors.amount = "Informe um valor valido maior que zero.";
       }
-      if (amount && !/^\d+([.,]\d{1,2})?$/.test(amount.trim())) {
+      if (!nextErrors.amount && amount && !/^\d+([.,]\d{1,2})?$/.test(amount.trim())) {
         nextErrors.amount = "Use no maximo 2 casas decimais.";
       }
       if (isExpenseType(type) && category === "INCOME") {
@@ -295,6 +295,7 @@ export default function TxForm({ initial, onSubmit }: Props) {
         label="Valor (R$)"
         type="number"
         step="0.01"
+        min="0.01"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         required
