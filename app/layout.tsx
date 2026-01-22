@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <SnackbarProvider>
               <Header />
               <main className="container py-6">{children}</main>
-              <footer className="container py-10 text-center text-muted text-sm">Tech Challenge — Fase 1</footer>
+              <footer className="container py-10 text-center text-muted text-sm">Tech Challenge — Fase 2</footer>
             </SnackbarProvider>
           </AuthProvider>
         </ThemeProvider>
