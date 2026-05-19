@@ -55,3 +55,27 @@ export function normalizeTransaction(tx: AnyTransaction): TransactionWithRuntime
   return normalized;
 }
 
+export function getProcessingDueTransactions(
+  transactions: TransactionWithRuntime[],
+  now: Date = new Date()
+) {
+  const nowMs = now.getTime();
+  return transactions.filter(
+    (t) =>
+      t.status === "PROCESSING" &&
+      t.processingUntil &&
+      +new Date(t.processingUntil) <= nowMs
+  );
+}
+
+export function markProcessingAsProcessed(
+  transactions: TransactionWithRuntime[],
+  due: TransactionWithRuntime[]
+) {
+  const dueIds = new Set(due.map((tx) => tx.id));
+  return transactions.map((tx) =>
+    dueIds.has(tx.id)
+      ? { ...tx, status: "PROCESSED" as const, processingUntil: undefined }
+      : tx
+  );
+}
