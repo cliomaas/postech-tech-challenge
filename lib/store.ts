@@ -1,10 +1,21 @@
 "use client";
 import { create, type StateCreator } from "zustand";
 import type { AnyTransaction, TransactionStatus } from "./types";
+import type { TransactionRepository } from "@/lib/application/transactions";
+import type { TransactionWithRuntime } from "@/lib/domain/transactions";
 import { emitTxEvent } from "@/src/mf/events";
 import { listTransactions, createTransaction, updateTransaction, deleteTransaction, cancelTransaction, restoreTransaction } from "./backend";
+import {
+  cancelTransactionUseCase,
+  createTransactionUseCase,
+  deleteTransactionUseCase,
+  listTransactionsUseCase,
+  restoreTransactionUseCase,
+  sweepProcessingTransactionsUseCase,
+  updateTransactionUseCase,
+} from "@/lib/application/transactions";
 
-type TxWithRuntime = AnyTransaction & { processingUntil?: string; previousStatus?: TransactionStatus; cancelledAt?: string, locked?: boolean; };
+type TxWithRuntime = TransactionWithRuntime;
 
 type Notifier = { success?: (msg: string) => void; error?: (msg: string) => void };
 
@@ -22,6 +33,15 @@ type State = {
 };
 
 let timerId: ReturnType<typeof setTimeout> | null = null;
+
+const transactionRepository: TransactionRepository = {
+  list: listTransactions as TransactionRepository["list"],
+  create: createTransaction as TransactionRepository["create"],
+  update: updateTransaction as TransactionRepository["update"],
+  delete: deleteTransaction,
+  cancel: cancelTransaction as TransactionRepository["cancel"],
+  restore: restoreTransaction as TransactionRepository["restore"],
+};
 
 function parseISO(s?: string) {
   return s ? new Date(s) : null;
@@ -44,18 +64,13 @@ function scheduleNextSweep(get: () => State, set: (partial: Partial<State>) => v
 }
 
 async function sweepProcessing(get: () => State, set: (partial: Partial<State>) => void) {
-  const now = Date.now();
-  const due = get().transactions.filter(
-    t => t.status === "PROCESSING" && t.processingUntil && +new Date(t.processingUntil) <= now
+  const result = await sweepProcessingTransactionsUseCase(
+    transactionRepository,
+    get().transactions
   );
-  if (due.length === 0) return;
-  const updatedLocal = get().transactions.map(t =>
-    due.find(d => d.id === t.id)
-      ? { ...t, status: "PROCESSED" as TransactionStatus, processingUntil: undefined }
-      : t
-  );
-  set({ transactions: updatedLocal });
-  await Promise.all(due.map(d => updateTransaction(d.id, { status: "PROCESSED" })));
+  if (result.due.length > 0) {
+    set({ transactions: result.transactions });
+  }
 }
 
 const creator: StateCreator<State> = (set, get) => ({
@@ -66,14 +81,14 @@ const creator: StateCreator<State> = (set, get) => ({
 
   fetchAll: async q => {
     set({ loading: true });
-    const data = (await listTransactions({ q, _sort: "date", _order: "desc" })) as TxWithRuntime[];
+    const data = (await listTransactionsUseCase(transactionRepository, { q, _sort: "date", _order: "desc" })) as TxWithRuntime[];
     set({ transactions: data, loading: false });
     await sweepProcessing(get, set);
     scheduleNextSweep(get, set);
   },
 
   add: async t => {
-    const created = (await createTransaction(t)) as TxWithRuntime;
+    const created = (await createTransactionUseCase(transactionRepository, t)) as TxWithRuntime;
     set({ transactions: [created, ...get().transactions] });
     emitTxEvent({ type: "tx:created", id: created.id });
     if (created.status === "PROCESSING" && created.processingUntil) {
@@ -82,14 +97,14 @@ const creator: StateCreator<State> = (set, get) => ({
   },
 
   patch: async (id, p) => {
-    const updated = (await updateTransaction(id, p)) as TxWithRuntime;
+    const updated = (await updateTransactionUseCase(transactionRepository, id, p)) as TxWithRuntime;
     set({ transactions: get().transactions.map(x => (x.id === id ? updated : x)) });
     emitTxEvent({ type: "tx:updated", id });
     scheduleNextSweep(get, set);
   },
 
   remove: async id => {
-    await deleteTransaction(id);
+    await deleteTransactionUseCase(transactionRepository, id);
     set({ transactions: get().transactions.filter(x => x.id !== id) });
     emitTxEvent({ type: "tx:removed", id });
     scheduleNextSweep(get, set);
@@ -105,7 +120,7 @@ const creator: StateCreator<State> = (set, get) => ({
       ),
     });
     try {
-      await cancelTransaction(id, t.status as TransactionStatus);
+      await cancelTransactionUseCase(transactionRepository, id, t.status as TransactionStatus);
       emitTxEvent({ type: "tx:cancelled", id });
     } catch {
       get().notifier?.error?.("Erro ao cancelar transação");
@@ -122,7 +137,7 @@ const creator: StateCreator<State> = (set, get) => ({
         t.id === id ? { ...t, status: restoreTo, previousStatus: undefined } : t
       ),
     });
-    await restoreTransaction(id, restoreTo);
+    await restoreTransactionUseCase(transactionRepository, id, restoreTo);
     emitTxEvent({ type: "tx:restored", id });
     scheduleNextSweep(get, set);
   },
