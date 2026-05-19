@@ -1,22 +1,13 @@
 import type {
   AnyTransaction,
+  ListTransactionsParams,
   TransactionStatus,
   TransactionWithRuntime,
 } from "@/lib/domain/transactions";
 
-export type ListTransactionsParams = {
-  q?: string;
-  type?: string;
-  status?: string;
-  category?: string;
-  _sort?: string;
-  _order?: "asc" | "desc";
-  _page?: number;
-  _limit?: number;
-};
-
 export type TransactionRepository = {
   list(params?: ListTransactionsParams, signal?: AbortSignal): Promise<TransactionWithRuntime[]>;
+  get(id: string): Promise<TransactionWithRuntime>;
   create(input: Omit<AnyTransaction, "id">): Promise<TransactionWithRuntime>;
   update(
     id: string,

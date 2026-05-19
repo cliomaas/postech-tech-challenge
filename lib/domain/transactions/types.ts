@@ -13,3 +13,23 @@ export interface PixTransaction extends Omit<Transaction, "type"> {
 
 export type AnyTransaction = Transaction | PixTransaction;
 
+export type TransactionRuntimeFields = {
+  processingUntil?: string;
+  previousStatus?: Transaction["status"];
+  cancelledAt?: string;
+  locked?: boolean;
+};
+
+export type TransactionWithRuntime = AnyTransaction & TransactionRuntimeFields;
+
+export type ListTransactionsParams = {
+  q?: string;
+  type?: string;
+  status?: string;
+  category?: string;
+  _sort?: string;
+  _order?: "asc" | "desc";
+  _page?: number;
+  _limit?: number;
+};
+

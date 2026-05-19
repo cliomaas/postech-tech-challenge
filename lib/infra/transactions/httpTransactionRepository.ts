@@ -1,8 +1,10 @@
+import type { TransactionRepository } from "@/lib/application/transactions";
 import type {
+  AnyTransaction,
   ListTransactionsParams,
-  TransactionRepository,
-} from "@/lib/application/transactions";
-import type { AnyTransaction, TransactionStatus } from "@/lib/domain/transactions";
+  TransactionStatus,
+  TransactionWithRuntime,
+} from "@/lib/domain/transactions";
 import { normalizeTransaction } from "@/lib/domain/transactions";
 import { getApiBase } from "@/lib/env";
 
@@ -39,6 +41,12 @@ export class HttpTransactionRepository implements TransactionRepository {
     });
     const data = await parseJson<AnyTransaction[]>(res);
     return data.map(normalizeTransaction);
+  }
+
+  async get(id: string) {
+    const res = await fetch(`${BASE}/transactions/${id}`, { cache: "no-store" });
+    const tx = await parseJson<AnyTransaction>(res);
+    return normalizeTransaction(tx);
   }
 
   async create(input: Omit<AnyTransaction, "id">) {
@@ -89,10 +97,37 @@ export class HttpTransactionRepository implements TransactionRepository {
 
 export const transactionRepository = new HttpTransactionRepository();
 
-export const listTransactions = transactionRepository.list.bind(transactionRepository);
-export const createTransaction = transactionRepository.create.bind(transactionRepository);
-export const updateTransaction = transactionRepository.update.bind(transactionRepository);
-export const deleteTransaction = transactionRepository.delete.bind(transactionRepository);
-export const cancelTransaction = transactionRepository.cancel.bind(transactionRepository);
-export const restoreTransaction = transactionRepository.restore.bind(transactionRepository);
+export async function listTransactions(
+  opts?: ListTransactionsParams,
+  signal?: AbortSignal
+): Promise<TransactionWithRuntime[]> {
+  return transactionRepository.list(opts, signal);
+}
+
+export async function getTransaction(id: string) {
+  return transactionRepository.get(id);
+}
+
+export async function createTransaction(input: Omit<AnyTransaction, "id">) {
+  return transactionRepository.create(input);
+}
+
+export async function updateTransaction(
+  id: string,
+  patch: Partial<Omit<AnyTransaction, "id">>
+) {
+  return transactionRepository.update(id, patch);
+}
+
+export async function deleteTransaction(id: string) {
+  return transactionRepository.delete(id);
+}
+
+export async function cancelTransaction(id: string, previousStatus: TransactionStatus) {
+  return transactionRepository.cancel(id, previousStatus);
+}
+
+export async function restoreTransaction(id: string, status: TransactionStatus) {
+  return transactionRepository.restore(id, status);
+}
 
