@@ -1,4 +1,8 @@
-type UserRecord = { id: string; email: string; password: string; name?: string };
+import { hashPassword } from "@/lib/infra/auth/passwordHash";
+
+export const runtime = "nodejs";
+
+type UserRecord = { id: string; email: string; passwordHash?: string; name?: string };
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -29,7 +33,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         id: `u-${Date.now()}`,
         email,
-        password,
+        passwordHash: await hashPassword(password),
         ...(name ? { name } : {}),
       }),
     });

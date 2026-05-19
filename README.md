@@ -178,7 +178,7 @@ Variaveis de ambiente necessarias:
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=coloque-uma-string-segura
 ADMIN_EMAIL=seu-email@exemplo.com
-ADMIN_PASSWORD=sua-senha
+ADMIN_PASSWORD_HASH=scrypt$16384$8$1$...
 ```
 
 > Em deploy (Vercel), configure essas variaveis no painel do projeto.
@@ -186,7 +186,9 @@ ADMIN_PASSWORD=sua-senha
 Cadastro (mock via API):
 - A rota `POST /api/auth/register` envia usuarios para `NEXT_PUBLIC_API_URL` (ex: json-server no Render).
 - O login consulta `GET /users?email=...` nessa mesma API.
-- Senhas ficam em texto para demonstracao; para producao use banco real + hashing.
+- As senhas sao persistidas como hash `scrypt` no campo `passwordHash`; o app nao grava senha em texto puro.
+- Para usuarios administrativos via variavel de ambiente, configure `ADMIN_PASSWORD_HASH` com um hash `scrypt` gerado pela aplicacao.
+- O `json-server` e usado apenas como backend demonstrativo da entrega. Ele nao substitui um backend real com banco, controle de acesso por usuario, rate limit, auditoria e politicas de segredo.
 
 ---
 

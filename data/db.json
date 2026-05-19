@@ -879,7 +879,7 @@
     {
       "id": "u-1768931795929",
       "email": "fulano@gmail.com",
-      "password": "1234",
+      "passwordHash": "scrypt$16384$8$1$GT-fANRtOkIhL9Y6EEUPAw$NaE2X14scJhAJ26dmix8gjGEppZ3R6ox80VX-0E952boifdxqN6GoW6QaUijAZ8RP78C-oD7wYrAkhWGAIY-CQ",
       "name": "Fulano"
     }
   ]
