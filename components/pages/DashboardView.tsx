@@ -1,20 +1,27 @@
 "use client";
 
-import BalanceCard from "@/components/charts/BalanceCard";
-import IncomeCard from "@/components/charts/IncomeCard";
-import ExpenseCard from "@/components/charts/ExpenseCard";
-import HighestExpenseCard from "@/components/charts/HighestExpenseCard";
-import MonthlyBalanceChart from "@/components/charts/MonthlyBalanceChart";
-import ExpenseCategoryChart from "@/components/charts/ExpenseCategoryChart";
 import Card from "@/components/ds/Card";
 import Button from "@/components/ds/Button";
 import Modal from "@/components/ds/Modal";
-import TxForm from "@/components/forms/TxForm";
 import TxList from "@/components/TxList";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useTxStore } from "@/lib/store";
 import { finalizeFromForm } from "@/lib/utils/tx";
 import { onTxEvent } from "@/src/mf/events";
+
+const BalanceCard = lazy(() => import("@/components/charts/BalanceCard"));
+const IncomeCard = lazy(() => import("@/components/charts/IncomeCard"));
+const ExpenseCard = lazy(() => import("@/components/charts/ExpenseCard"));
+const HighestExpenseCard = lazy(() => import("@/components/charts/HighestExpenseCard"));
+const MonthlyBalanceChart = lazy(() => import("@/components/charts/MonthlyBalanceChart"));
+const ExpenseCategoryChart = lazy(() => import("@/components/charts/ExpenseCategoryChart"));
+const TxForm = lazy(() => import("@/components/forms/TxForm"));
+
+function ChartFallback({ className = "h-64" }: { className?: string }) {
+  return (
+    <Card className={`animate-pulse bg-[color:var(--color-surface-50)] ${className}`} />
+  );
+}
 
 export default function DashboardView() {
   const [open, setOpen] = useState(false);
@@ -31,16 +38,28 @@ export default function DashboardView() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
         <div className="lg:col-span-2">
-          <BalanceCard />
+          <Suspense fallback={<ChartFallback className="h-32" />}>
+            <BalanceCard />
+          </Suspense>
         </div>
-        <IncomeCard />
-        <ExpenseCard />
-        <HighestExpenseCard />
+        <Suspense fallback={<ChartFallback className="h-32" />}>
+          <IncomeCard />
+        </Suspense>
+        <Suspense fallback={<ChartFallback className="h-32" />}>
+          <ExpenseCard />
+        </Suspense>
+        <Suspense fallback={<ChartFallback className="h-32" />}>
+          <HighestExpenseCard />
+        </Suspense>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <MonthlyBalanceChart />
-        <ExpenseCategoryChart />
+        <Suspense fallback={<ChartFallback />}>
+          <MonthlyBalanceChart />
+        </Suspense>
+        <Suspense fallback={<ChartFallback />}>
+          <ExpenseCategoryChart />
+        </Suspense>
       </div>
 
       <div className="grid md:grid-cols-1 gap-4">
@@ -76,13 +95,15 @@ export default function DashboardView() {
 
       <Modal open={open} onClose={() => setOpen(false)}>
         <h3 className="text-lg font-medium mb-3">Adicionar transação</h3>
-        <TxForm
-          onSubmit={(form) => {
-            const txWithoutId = finalizeFromForm(form);
-            add(txWithoutId);
-            setOpen(false);
-          }}
-        />
+        <Suspense fallback={<ChartFallback className="h-80" />}>
+          <TxForm
+            onSubmit={(form) => {
+              const txWithoutId = finalizeFromForm(form);
+              add(txWithoutId);
+              setOpen(false);
+            }}
+          />
+        </Suspense>
       </Modal>
     </div>
   );
