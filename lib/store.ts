@@ -1,10 +1,8 @@
 "use client";
 import { create, type StateCreator } from "zustand";
 import type { AnyTransaction, TransactionStatus } from "./types";
-import type { TransactionRepository } from "@/lib/application/transactions";
 import type { TransactionWithRuntime } from "@/lib/domain/transactions";
 import { emitTxEvent } from "@/src/mf/events";
-import { listTransactions, createTransaction, updateTransaction, deleteTransaction, cancelTransaction, restoreTransaction } from "./backend";
 import {
   cancelTransactionUseCase,
   createTransactionUseCase,
@@ -14,6 +12,7 @@ import {
   sweepProcessingTransactionsUseCase,
   updateTransactionUseCase,
 } from "@/lib/application/transactions";
+import { transactionRepository } from "@/lib/infra/transactions";
 
 type TxWithRuntime = TransactionWithRuntime;
 
@@ -33,15 +32,6 @@ type State = {
 };
 
 let timerId: ReturnType<typeof setTimeout> | null = null;
-
-const transactionRepository: TransactionRepository = {
-  list: listTransactions as TransactionRepository["list"],
-  create: createTransaction as TransactionRepository["create"],
-  update: updateTransaction as TransactionRepository["update"],
-  delete: deleteTransaction,
-  cancel: cancelTransaction as TransactionRepository["cancel"],
-  restore: restoreTransaction as TransactionRepository["restore"],
-};
 
 function parseISO(s?: string) {
   return s ? new Date(s) : null;
