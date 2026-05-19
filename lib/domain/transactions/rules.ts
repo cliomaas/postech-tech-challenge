@@ -1,14 +1,5 @@
-import type { AnyTransaction } from "./types";
+import type { AnyTransaction, TransactionWithRuntime } from "./types";
 import { dayStartTsFromAny, getTodayISO } from "@/lib/utils/date";
-
-export type TransactionRuntimeFlags = {
-  processingUntil?: string;
-  previousStatus?: AnyTransaction["status"];
-  cancelledAt?: string;
-  locked?: boolean;
-};
-
-export type TransactionWithRuntime = AnyTransaction & TransactionRuntimeFlags;
 
 export function isExpenseTransactionType(type: AnyTransaction["type"]) {
   return type === "withdraw" || type === "payment" || type === "pix";
@@ -37,9 +28,10 @@ export function isExpiredScheduled(tx: TransactionWithRuntime) {
 }
 
 export function normalizeTransaction(tx: AnyTransaction): TransactionWithRuntime {
+  const category = isExpenseTransactionType(tx.type) ? (tx.category ?? "OUTROS") : "INCOME";
   const normalized = {
     ...tx,
-    category: isExpenseTransactionType(tx.type) ? (tx.category ?? "OUTROS") : "INCOME",
+    category,
     status: typeof tx.status === "string" ? tx.status.toUpperCase() : tx.status,
   } as TransactionWithRuntime;
 
@@ -79,3 +71,4 @@ export function markProcessingAsProcessed(
       : tx
   );
 }
+

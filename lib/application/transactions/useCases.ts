@@ -1,5 +1,6 @@
 import type {
   AnyTransaction,
+  ListTransactionsParams,
   TransactionStatus,
   TransactionWithRuntime,
 } from "@/lib/domain/transactions";
@@ -7,7 +8,7 @@ import {
   getProcessingDueTransactions,
   markProcessingAsProcessed,
 } from "@/lib/domain/transactions";
-import type { ListTransactionsParams, TransactionRepository } from "./transactionRepository";
+import type { TransactionRepository } from "./transactionRepository";
 
 export async function listTransactionsUseCase(
   repository: TransactionRepository,
