@@ -57,7 +57,7 @@ const handler = NextAuth({
         const user = await fetchUserByEmail(email);
         if (!user?.passwordHash) return null;
 
-        const validPassword = await verifyPassword(password, user.passwordHash);
+        const validPassword = await verifyPassword(password, user.passwordHash).catch(() => false);
         if (!validPassword) return null;
 
         return { id: user.id, email: user.email, name: user.name ?? "Usuario" };

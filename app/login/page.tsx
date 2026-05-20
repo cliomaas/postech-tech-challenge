@@ -17,20 +17,24 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    setLoading(false);
+      if (!result?.ok || result.error) {
+        setError("Email ou senha invalidos.");
+        return;
+      }
 
-    if (result?.error) {
-      setError("Email ou senha invalidos.");
-      return;
+      window.location.href = "/dashboard";
+    } catch {
+      setError("Nao foi possivel entrar. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-
-    window.location.href = "/dashboard";
   }
 
   return (
