@@ -276,38 +276,6 @@ Componentes principais:
 
 ---
 
-## Roteiro do vídeo demonstrativo (até 5 minutos)
-
-Sugestão de roteiro objetivo:
-
-1. **Abertura (20s)**
-   - Apresentar o Bytebank e explicar que a Fase 4 evolui a aplicação com arquitetura, segurança e performance.
-
-2. **Arquitetura (50s)**
-   - Mostrar rapidamente as pastas `domain`, `application`, `infra` e `presentation`.
-   - Explicar que domínio guarda regras, aplicação guarda casos de uso, infra guarda HTTP/cache e presentation guarda Zustand/UI.
-
-3. **Segurança (45s)**
-   - Mostrar login/cadastro.
-   - Explicar que a senha não é salva em texto puro e que o JSON Server armazena `passwordHash`.
-   - Reforçar que JSON Server é demonstrativo.
-
-4. **Fluxo funcional (1min30s)**
-   - Entrar no dashboard.
-   - Criar uma transação.
-   - Ver atualização do saldo/extrato.
-   - Editar, cancelar ou restaurar uma transação.
-
-5. **Performance/cache (45s)**
-   - Explicar cache de transações com invalidação em mutações.
-   - Mostrar que gráficos e formulário são carregados sob demanda.
-   - Citar prefetch/preconnect dos microfrontends.
-
-6. **Fechamento (30s)**
-   - Reforçar os ganhos: código mais modular, seguro, performático e preparado para evolução.
-
----
-
 ## Autora
 
 **Clio Maas**
