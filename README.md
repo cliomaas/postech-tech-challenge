@@ -1,214 +1,285 @@
-# 💸 Tech Challenge – Fase 1 (Pós-Tech FIAP)
+# Tech Challenge - Fase 4 (Pós-Tech FIAP)
 
-Gerenciador de transações financeiras desenvolvido como parte do **Tech Challenge – Fase 1** da pós-graduação em *Front-End Engineering* (FIAP).  
-O projeto simula uma interface bancária moderna, permitindo **visualizar, criar, editar e cancelar transações**, além de acompanhar o **saldo** e o **extrato** em tempo real.
+Aplicação de gerenciamento financeiro evoluída para a **Fase 4** do Tech Challenge da Pós-Tech FIAP. O projeto simula uma experiência bancária digital com autenticação, dashboard financeiro, extrato de transações, microfrontends e organização orientada a Clean Architecture.
 
----
+Nesta fase, o foco foi evoluir a base das fases anteriores com:
 
-## 🚀 Tecnologias utilizadas
-- [Next.js 15](https://nextjs.org/) + React 19  
-- [TypeScript](https://www.typescriptlang.org/)  
-- [Zustand](https://zustand-demo.pmnd.rs/) (persistência em estado local)  
-- [Single SPA](https://single-spa.js.org/) + Vite (microfrontends independentes)  
-- [Tailwind CSS](https://tailwindcss.com/)  
-- **Design System** próprio documentado em [Storybook](https://storybook.js.org/) (`npm run storybook`)  
-- [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/)  
+- arquitetura front-end mais modular;
+- separação entre domínio, aplicação, infraestrutura e apresentação;
+- segurança no fluxo de autenticação;
+- cache e otimizações de carregamento;
+- documentação clara para execução e demonstração.
 
 ---
 
-## 🧭 Estrutura principal
+## Tecnologias utilizadas
 
-| Área                                 | Descrição                                                                                        |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| **Home**                             | Exibe o **saldo atual**, **últimas transações** e botão “Nova transação”.                        |
-| **Transações**                       | Lista todas as transações com **edição**, **cancelamento** e **restauração**.                    |
-| **Formulário (`TxForm`)**            | Modal de criação/edição. Bloqueia **datas anteriores a hoje**, valida **valor** e **descrição**. |
-| **Store (`useTxStore`)**             | Gerencia as ações `add`, `patch`, `cancel`, `restore`.                                           |
-| **Design System (`/components/ds`)** | Conjunto reutilizável de componentes (`Button`, `Input`, `Select`, `Modal`, `Badge`).            |
+- [Next.js 15](https://nextjs.org/) + React 19
+- TypeScript
+- Zustand
+- NextAuth com Credentials Provider
+- Single SPA + Vite para microfrontends
+- Tailwind CSS
+- Recharts
+- JSON Server como API mockada
+- Storybook para documentação do Design System
+- ESLint
 
 ---
 
-## 🧩 Microfrontends (Single SPA)
+## Funcionalidades
 
-- **Shell SSR/SSG:** Next.js mantém o SSR/SSG e entrega o layout base.
-- **MFEs independentes:** `Dashboard` e `Transações` vivem em `apps/mfe-dashboard` e `apps/mfe-transactions`.
-- **Build isolado:** cada MFE gera bundle UMD via Vite e é servido localmente (ports 9101/9102).
-- **Roteamento:** `activeWhen` em `src/mf/root-config.ts` ativa cada MFE conforme a rota.
-- **Comunicação:** eventos `CustomEvent` (`mfe:tx`) em `src/mf/events.ts` notificam mudanças de transações.
+- Login e cadastro de usuários.
+- Rotas protegidas para dashboard e transações.
+- Criação, edição, cancelamento e restauração de transações.
+- Suporte a depósito, transferência, pagamento, saque e Pix.
+- Agendamento e processamento de transações.
+- Dashboard com saldo, receitas, despesas e gráficos.
+- Filtros e busca no extrato.
+- Comunicação entre shell e microfrontends via eventos.
+- Design System próprio com componentes reutilizáveis.
 
-URLs locais padrão dos MFEs:
-- `http://localhost:9101/mfe-dashboard.umd.js`
-- `http://localhost:9102/mfe-transactions.umd.js`
+---
 
-Variáveis opcionais (shell):
+## Arquitetura
+
+A aplicação foi reorganizada seguindo princípios de **Clean Architecture**. A regra central é manter as decisões de negócio separadas de frameworks, HTTP, Zustand e componentes visuais.
+
+```txt
+lib/
+  domain/
+    transactions/      Regras e tipos do negócio financeiro
+  application/
+    transactions/      Casos de uso e contrato de repositório
+  infra/
+    transactions/      Implementação HTTP/json-server
+    auth/              Hash e verificação de senha
+  presentation/
+    stores/            Store Zustand focada em estado da UI
 ```
+
+### Domain
+
+A camada de domínio concentra regras puras de transação:
+
+- identificação de receitas e despesas;
+- normalização de status e categoria;
+- regras de edição, cancelamento e restauração;
+- expiração de transações agendadas;
+- montagem/finalização de payload de transação.
+
+Essa camada não conhece React, Zustand, Next.js ou HTTP.
+
+### Application
+
+A camada de aplicação expõe os casos de uso:
+
+- listar transações;
+- criar transação;
+- atualizar transação;
+- cancelar/restaurar transação;
+- remover transação;
+- processar transações pendentes.
+
+Ela depende de uma interface de repositório, não de uma implementação concreta.
+
+### Infra
+
+A camada de infraestrutura implementa detalhes externos:
+
+- chamadas HTTP para o JSON Server;
+- serialização de query params;
+- cache em memória das transações;
+- invalidação do cache após mutações;
+- hash e verificação de senha.
+
+### Presentation
+
+O Zustand foi mantido como ferramenta de estado, mas agora atua como orquestrador:
+
+- chama casos de uso da camada `application`;
+- atualiza estado local da UI;
+- controla loading, notificações e eventos;
+- não concentra regra de negócio nem chamadas HTTP diretas.
+
+---
+
+## Segurança
+
+O projeto usa **NextAuth** com Credentials Provider para proteger as rotas `/dashboard` e `/transactions`.
+
+As senhas não são persistidas em texto puro. No cadastro, a senha é transformada em um hash `scrypt` antes de ser enviada ao backend mockado:
+
+```json
+{
+  "email": "fulano@gmail.com",
+  "passwordHash": "scrypt$16384$8$1$..."
+}
+```
+
+No login, a senha digitada é verificada contra o hash salvo. A aplicação não precisa recuperar nem armazenar a senha original.
+
+Variáveis principais:
+
+```bash
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=coloque-uma-string-segura
+NEXT_PUBLIC_API_URL=http://localhost:4000
+ADMIN_EMAIL=seu-email@exemplo.com
+ADMIN_PASSWORD_HASH=scrypt$16384$8$1$...
+```
+
+### Limitação do JSON Server
+
+O JSON Server é usado apenas como backend demonstrativo para a entrega acadêmica. Ele não substitui um backend real com banco de dados, autorização por usuário, rate limit, auditoria, rotação de segredos e políticas de segurança em produção.
+
+---
+
+## Performance e cache
+
+As principais otimizações aplicadas foram:
+
+- cache em memória para listagem e busca de transações;
+- TTL curto para reduzir requisições repetidas sem deixar a UI obsoleta por muito tempo;
+- invalidação do cache após criação, edição, cancelamento, restauração ou remoção;
+- lazy loading de gráficos do dashboard;
+- lazy loading do formulário de nova transação;
+- preconnect/prefetch dos bundles dos microfrontends;
+- configuração do ESLint 9 para validação do projeto.
+
+O cache fica na camada de infraestrutura, perto do repositório HTTP, porque é um detalhe de acesso a dados e não uma regra de negócio.
+
+---
+
+## Microfrontends
+
+O shell principal é Next.js. As áreas de Dashboard e Transações podem ser carregadas como microfrontends via Single SPA.
+
+- `apps/mfe-dashboard`: microfrontend de dashboard.
+- `apps/mfe-transactions`: microfrontend de transações.
+- `src/mf/root-config.ts`: registro, carregamento e ativação dos MFEs.
+- `src/mf/events.ts`: comunicação entre aplicações via `CustomEvent`.
+
+URLs locais padrão:
+
+```bash
+http://localhost:9101/mfe-dashboard.umd.js
+http://localhost:9102/mfe-transactions.umd.js
+```
+
+Variáveis opcionais:
+
+```bash
 NEXT_PUBLIC_MFE_DASHBOARD_URL=http://localhost:9101/mfe-dashboard.umd.js
 NEXT_PUBLIC_MFE_TRANSACTIONS_URL=http://localhost:9102/mfe-transactions.umd.js
-```
-
-Variáveis opcionais (MFEs):
-```
 VITE_API_URL=http://localhost:4000
 ```
 
 ---
 
-## 🧩 Funcionalidades
+## Como rodar localmente
 
-✅ Criar nova transação (depósito, transferência, pagamento, saque ou PIX)  
-✅ Editar transação existente  
-✅ Cancelar / Restaurar transação  
-✅ Bloquear datas anteriores a hoje  
-✅ Atualizar saldo automaticamente  
-✅ Filtrar/buscar transações  
-✅ Interface responsiva e consistente via Design System  
-
----
-
-## 🧠 Sobre o *Cancelar × Excluir*
-
-Em um sistema financeiro real, **transações não são excluídas fisicamente** — são **canceladas** ou **estornadas**, preservando o histórico para auditoria.  
-Por isso, neste projeto o botão **Cancelar** representa o “Delete” lógico do CRUD:
-
-- `PATCH` → muda o `status` para `"cancelled"`  
-- a transação permanece listada (com *badge* “Cancelada”)  
-- o saldo é ajustado para refletir o cancelamento  
-
-> 💡 Essa decisão foi proposital para refletir a prática bancária e garantir integridade histórica.
-
----
-
-## 🧱 Design System & Storybook
-
-O Design System do projeto inclui componentes reutilizáveis com documentação em **Storybook**.
+Instale as dependências:
 
 ```bash
-npm run storybook
-```
-
-Abra [http://localhost:6006](http://localhost:6006) para visualizar.
-
-Componentes principais:
-- `Button` (variações: primary / ghost / danger)  
-- `Input` (text | number | date)  
-- `Select`  
-- `Modal`  
-- `Badge`
-
----
-
-## 🧰 Como rodar o projeto
-
-```bash
-# 1. Instalar dependências
 npm install
-
-# 1.1. Instalar dependências dos MFEs (uma vez)
 npm --prefix apps/mfe-dashboard install
 npm --prefix apps/mfe-transactions install
+```
 
-# 2. Rodar em modo de desenvolvimento
+Rode API, shell e microfrontends:
+
+```bash
 npm run dev:all
+```
 
-# 3. Abrir no navegador
+Acesse:
+
+```bash
 http://localhost:3000
 ```
 
+Serviços locais:
+
+- `3000`: Next.js
+- `4000`: JSON Server
+- `9101`: MFE Dashboard
+- `9102`: MFE Transações
+
 ---
 
-## 🐳 Docker
+## Docker
 
 ```bash
 docker compose up --build
 ```
 
 Portas expostas:
-- `3000` (Next.js)
-- `4000` (JSON Server)
-- `9101` (mfe-dashboard)
-- `9102` (mfe-transactions)
 
-As variáveis de ambiente já estão no `docker-compose.yml` para rodar tudo localmente.
-
----
-
-## 🩹 Troubleshooting
-
-Problemas comuns e soluções rápidas:
-- **MFE não carrega**: confirme se `http://localhost:9101/mfe-dashboard.umd.js` e `http://localhost:9102/mfe-transactions.umd.js` respondem.
-- **Erro `process is not defined`**: reinicie os MFEs (Vite). O build precisa do `define` no Vite config.
-- **Erro `missing lifecycle exports`**: o bundle UMD precisa expor `bootstrap/mount/unmount` no `window` (já configurado).
-- **NextAuth error `NO_SECRET`**: verifique `NEXTAUTH_SECRET` no `.env.local` ou no `docker-compose.yml`.
+- `3000`: Next.js
+- `4000`: JSON Server
+- `9101`: MFE Dashboard
+- `9102`: MFE Transações
 
 ---
 
-## 🧪 Scripts disponíveis
+## Scripts
 
 ```bash
-npm run dev          # inicia o servidor local (Next.js)
-npm run dev:mfes     # inicia os MFEs (Vite build+preview)
-npm run dev:all      # API + Next + MFEs
-npm run api          # JSON Server em http://localhost:4000
-npm run build        # cria a versão de produção (shell)
-npm run lint         # verifica erros de lint
-npm run storybook    # inicia o Storybook
-npm run test         # executa testes (caso configurados)
+npm run api              # JSON Server em http://localhost:4000
+npm run dev              # Next.js
+npm run dev:mfes         # Microfrontends
+npm run dev:all          # API + Next.js + MFEs
+npm run build            # Build de produção
+npm run lint             # ESLint
+npm run storybook        # Storybook
+npm run build-storybook  # Build do Storybook
 ```
 
 ---
 
-## 🧠 Decisões técnicas
+## Design System
 
-- O **cancelamento** é tratado como *update lógico*, e não exclusão real.
-- O estado global usa **Zustand**, permitindo atualizações reativas e desacopladas.
-- Datas são normalizadas em formato `YYYY-MM-DD` e bloqueadas para o passado.
-- O layout segue uma hierarquia simples e responsiva com **Tailwind**.
-- O **Design System** garante consistência visual e facilita manutenção.
+O projeto possui Design System próprio documentado em Storybook:
 
----
-
-## 🔐 Autenticacao (ambiente cloud)
-
-Para proteger o acesso ao app em producao, foi adicionado **NextAuth (Credentials)**.
-Rotas protegidas: `/dashboard` e `/transactions` (via `middleware.ts`).
-
-Variaveis de ambiente necessarias:
-
-```
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=coloque-uma-string-segura
-ADMIN_EMAIL=seu-email@exemplo.com
-ADMIN_PASSWORD_HASH=scrypt$16384$8$1$...
+```bash
+npm run storybook
 ```
 
-> Em deploy (Vercel), configure essas variaveis no painel do projeto.
+Acesse:
 
-Cadastro (mock via API):
-- A rota `POST /api/auth/register` envia usuarios para `NEXT_PUBLIC_API_URL` (ex: json-server no Render).
-- O login consulta `GET /users?email=...` nessa mesma API.
-- As senhas sao persistidas como hash `scrypt` no campo `passwordHash`; o app nao grava senha em texto puro.
-- Para usuarios administrativos via variavel de ambiente, configure `ADMIN_PASSWORD_HASH` com um hash `scrypt` gerado pela aplicacao.
-- O `json-server` e usado apenas como backend demonstrativo da entrega. Ele nao substitui um backend real com banco, controle de acesso por usuario, rate limit, auditoria e politicas de segredo.
+```bash
+http://localhost:6006
+```
 
----
+Componentes principais:
 
-## 📽️ Entrega / Demonstração
-
-O vídeo de entrega demonstra:
-
-1. Acesso à home e visualização do saldo.  
-2. Criação de novas transações.  
-3. Edição de uma transação existente.  
-4. Cancelamento de uma transação (com atualização do saldo).  
-5. Restauração de uma transação cancelada.  
-6. Acesso ao Storybook e visualização dos componentes do Design System.
+- Button
+- Input
+- Select
+- Modal
+- Badge
+- Snackbar
+- Card
 
 ---
 
-## 👩‍💻 Autora
+## Decisões técnicas
 
-**Clio Maas**  
-Desenvolvedora Front-End • Pós-Tech FIAP  
+- Transações não são excluídas fisicamente; o fluxo usa cancelamento/restauração para preservar histórico.
+- A regra de negócio fica em `domain`, isolada de React e HTTP.
+- Casos de uso ficam em `application`, consumindo um contrato de repositório.
+- HTTP, cache e JSON Server ficam em `infra`.
+- Zustand fica em `presentation`, coordenando estado e ações da UI.
+- O JSON Server foi mantido como backend mockado para simplificar a entrega e a demonstração.
+- Senhas são persistidas apenas como hash `scrypt`.
+
+---
+
+## Autora
+
+**Clio Maas**
+
+Desenvolvedora Front-End - Pós-Tech FIAP
+
 [github.com/cliomaas](https://github.com/cliomaas)
-
----
