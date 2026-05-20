@@ -5,6 +5,8 @@ export const runtime = "nodejs";
 type UserRecord = { id: string; email: string; passwordHash?: string; name?: string };
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const backendUnavailableMessage =
+  "Backend mock indisponivel. Inicie a API com npm run api ou npm run dev:all.";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -20,6 +22,10 @@ export async function POST(req: Request) {
     const check = await fetch(`${BASE}/users?email=${encodeURIComponent(email)}`, {
       cache: "no-store",
     });
+    if (!check.ok) {
+      return Response.json({ error: backendUnavailableMessage }, { status: 502 });
+    }
+
     if (check.ok) {
       const existing = (await check.json()) as UserRecord[];
       if (existing.length > 0) {
@@ -39,11 +45,11 @@ export async function POST(req: Request) {
     });
 
     if (!create.ok) {
-      return Response.json({ error: "Erro ao cadastrar." }, { status: 500 });
+      return Response.json({ error: backendUnavailableMessage }, { status: 502 });
     }
 
     return Response.json({ ok: true });
   } catch {
-    return Response.json({ error: "Erro ao cadastrar." }, { status: 500 });
+    return Response.json({ error: backendUnavailableMessage }, { status: 503 });
   }
 }

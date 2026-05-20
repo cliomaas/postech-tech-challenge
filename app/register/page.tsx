@@ -25,25 +25,36 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Erro ao cadastrar.");
+        return;
+      }
+
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (!result?.ok || result.error) {
+        setError("Conta criada, mas nao foi possivel entrar automaticamente.");
+        return;
+      }
+
+      window.location.href = "/dashboard";
+    } catch {
+      setError("Nao foi possivel cadastrar. Tente novamente.");
+    } finally {
       setLoading(false);
-      setError(data.error ?? "Erro ao cadastrar.");
-      return;
     }
-
-    await signIn("credentials", {
-      email,
-      password,
-      redirect: true,
-      callbackUrl: "/dashboard",
-    });
   }
 
   return (
