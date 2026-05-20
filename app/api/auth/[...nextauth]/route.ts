@@ -1,6 +1,10 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-type UserRecord = { id: string; email: string; password: string; name?: string };
+import { verifyPassword } from "@/lib/infra/auth/passwordHash";
+
+export const runtime = "nodejs";
+
+type UserRecord = { id: string; email: string; passwordHash?: string; name?: string };
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -39,15 +43,22 @@ const handler = NextAuth({
         const email = credentials?.email?.trim().toLowerCase();
         const password = credentials?.password ?? "";
         const allowedEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-        const allowedPassword = process.env.ADMIN_PASSWORD ?? "";
+        const allowedPasswordHash =
+          process.env.ADMIN_PASSWORD_HASH ?? process.env.ADMIN_PASSWORD ?? "";
 
         if (!email || !password) return null;
-        if (allowedEmail && allowedPassword && email === allowedEmail && password === allowedPassword) {
-          return { id: "admin", email, name: "Admin" };
+        if (allowedEmail && allowedPasswordHash && email === allowedEmail) {
+          const validAdminPassword = await verifyPassword(password, allowedPasswordHash).catch(() => false);
+          if (validAdminPassword) {
+            return { id: "admin", email, name: "Admin" };
+          }
         }
 
         const user = await fetchUserByEmail(email);
-        if (!user || user.password !== password) return null;
+        if (!user?.passwordHash) return null;
+
+        const validPassword = await verifyPassword(password, user.passwordHash);
+        if (!validPassword) return null;
 
         return { id: user.id, email: user.email, name: user.name ?? "Usuario" };
       },
