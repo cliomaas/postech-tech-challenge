@@ -20,6 +20,7 @@ const transactionsUrl =
   process.env.NEXT_PUBLIC_MFE_TRANSACTIONS_URL ?? DEFAULT_TRANSACTIONS_URL;
 
 const registry = new Map<string, Promise<SingleSpaLifecycle>>();
+const hintedUrls = new Set<string>();
 
 function isLifecycle(value: unknown): value is SingleSpaLifecycle {
   if (!value || typeof value !== "object") return false;
@@ -75,6 +76,31 @@ function loadRemote(name: string, url: string, retries = 8, delayMs = 500) {
   return promise;
 }
 
+function addResourceHint(url: string, rel: "preconnect" | "prefetch") {
+  if (typeof document === "undefined") return;
+  const key = `${rel}:${url}`;
+  if (hintedUrls.has(key)) return;
+
+  const link = document.createElement("link");
+  link.rel = rel;
+  try {
+    link.href = rel === "preconnect" ? new URL(url, window.location.href).origin : url;
+  } catch {
+    return;
+  }
+  if (rel === "prefetch") link.as = "script";
+  if (rel === "preconnect") link.crossOrigin = "anonymous";
+  document.head.appendChild(link);
+  hintedUrls.add(key);
+}
+
+function prefetchRemotes() {
+  [dashboardUrl, transactionsUrl].forEach((url) => {
+    addResourceHint(url, "preconnect");
+    addResourceHint(url, "prefetch");
+  });
+}
+
 function registerApps() {
   if (registered) return;
   registerApplication({
@@ -92,6 +118,7 @@ function registerApps() {
 
 export function startSingleSpa() {
   if (typeof window === "undefined") return;
+  prefetchRemotes();
   registerApps();
   if (started) return;
   start();

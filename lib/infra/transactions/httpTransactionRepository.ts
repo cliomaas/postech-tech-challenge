@@ -9,6 +9,35 @@ import { normalizeTransaction } from "@/lib/domain/transactions";
 import { getApiBase } from "@/lib/env";
 
 const BASE = getApiBase();
+const CACHE_TTL_MS = 30_000;
+
+type CacheEntry<T> = {
+  expiresAt: number;
+  data: T;
+};
+
+const listCache = new Map<string, CacheEntry<TransactionWithRuntime[]>>();
+const transactionCache = new Map<string, CacheEntry<TransactionWithRuntime>>();
+
+function isFresh<T>(entry?: CacheEntry<T>) {
+  return Boolean(entry && entry.expiresAt > Date.now());
+}
+
+function cloneTransaction(tx: TransactionWithRuntime): TransactionWithRuntime {
+  return { ...tx };
+}
+
+function cacheFor<T>(data: T): CacheEntry<T> {
+  return {
+    data,
+    expiresAt: Date.now() + CACHE_TTL_MS,
+  };
+}
+
+function clearTransactionCache() {
+  listCache.clear();
+  transactionCache.clear();
+}
 
 async function parseJson<T>(res: Response): Promise<T> {
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
@@ -35,18 +64,35 @@ function buildTransactionsParams(opts?: ListTransactionsParams) {
 export class HttpTransactionRepository implements TransactionRepository {
   async list(opts?: ListTransactionsParams, signal?: AbortSignal) {
     const params = buildTransactionsParams(opts);
+    const cacheKey = params.toString();
+    const cached = listCache.get(cacheKey);
+
+    if (isFresh(cached)) {
+      return cached!.data.map(cloneTransaction);
+    }
+
     const res = await fetch(`${BASE}/transactions?${params.toString()}`, {
       cache: "no-store",
       signal,
     });
     const data = await parseJson<AnyTransaction[]>(res);
-    return data.map(normalizeTransaction);
+    const transactions = data.map(normalizeTransaction);
+    listCache.set(cacheKey, cacheFor(transactions));
+    return transactions.map(cloneTransaction);
   }
 
   async get(id: string) {
+    const cached = transactionCache.get(id);
+
+    if (isFresh(cached)) {
+      return cloneTransaction(cached!.data);
+    }
+
     const res = await fetch(`${BASE}/transactions/${id}`, { cache: "no-store" });
     const tx = await parseJson<AnyTransaction>(res);
-    return normalizeTransaction(tx);
+    const transaction = normalizeTransaction(tx);
+    transactionCache.set(id, cacheFor(transaction));
+    return cloneTransaction(transaction);
   }
 
   async create(input: Omit<AnyTransaction, "id">) {
@@ -56,6 +102,7 @@ export class HttpTransactionRepository implements TransactionRepository {
       body: JSON.stringify(input),
     });
     const tx = await parseJson<AnyTransaction>(res);
+    clearTransactionCache();
     return normalizeTransaction(tx);
   }
 
@@ -66,12 +113,14 @@ export class HttpTransactionRepository implements TransactionRepository {
       body: JSON.stringify(patch),
     });
     const tx = await parseJson<AnyTransaction>(res);
+    clearTransactionCache();
     return normalizeTransaction(tx);
   }
 
   async delete(id: string) {
     const res = await fetch(`${BASE}/transactions/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    clearTransactionCache();
   }
 
   async cancel(id: string, previousStatus: TransactionStatus) {
@@ -81,6 +130,7 @@ export class HttpTransactionRepository implements TransactionRepository {
       body: JSON.stringify({ status: "cancelled", previousStatus }),
     });
     const tx = await parseJson<AnyTransaction>(res);
+    clearTransactionCache();
     return normalizeTransaction(tx);
   }
 
@@ -91,6 +141,7 @@ export class HttpTransactionRepository implements TransactionRepository {
       body: JSON.stringify({ status, previousStatus: undefined }),
     });
     const tx = await parseJson<AnyTransaction>(res);
+    clearTransactionCache();
     return normalizeTransaction(tx);
   }
 }
@@ -130,4 +181,3 @@ export async function cancelTransaction(id: string, previousStatus: TransactionS
 export async function restoreTransaction(id: string, status: TransactionStatus) {
   return transactionRepository.restore(id, status);
 }
-
