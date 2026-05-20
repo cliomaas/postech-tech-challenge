@@ -129,6 +129,12 @@ ADMIN_EMAIL=seu-email@exemplo.com
 ADMIN_PASSWORD_HASH=scrypt$16384$8$1$...
 ```
 
+Use o arquivo `.env.example` como referência. Para gerar o hash da senha administrativa:
+
+```bash
+npm run auth:hash -- minha-senha
+```
+
 ### Limitação do JSON Server
 
 O JSON Server é usado apenas como backend demonstrativo para a entrega acadêmica. Ele não substitui um backend real com banco de dados, autorização por usuário, rate limit, auditoria, rotação de segredos e políticas de segurança em produção.
@@ -232,6 +238,8 @@ npm run dev:mfes         # Microfrontends
 npm run dev:all          # API + Next.js + MFEs
 npm run build            # Build de produção
 npm run lint             # ESLint
+npm run test             # Testes automatizados
+npm run auth:hash -- ... # Gera hash scrypt para ADMIN_PASSWORD_HASH
 npm run storybook        # Storybook
 npm run build-storybook  # Build do Storybook
 ```

@@ -11,6 +11,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "auth:hash": "node scripts/hash-password.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
